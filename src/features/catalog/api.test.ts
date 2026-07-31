@@ -16,3 +16,8 @@ it('maps a provider response to editable product fields', () => {
     imageUrl: 'https://x.test/a.jpg',
   })
 })
+
+it('maps the Free API barcode response without inventing an image', () => {
+  expect(normalizeBarcodeProduct({ goodsName: '清风抽纸', brand: '清风', standard: '单包' }))
+    .toEqual({ name: '清风抽纸', brand: '清风', specification: '单包', imageUrl: null })
+})

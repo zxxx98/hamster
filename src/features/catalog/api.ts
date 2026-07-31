@@ -7,14 +7,16 @@ export type BarcodeProduct = {
 
 export function normalizeBarcodeProduct(input: {
   name?: string
+  goodsName?: string
   brand?: string
   spec?: string
+  standard?: string
   image?: string
 }): BarcodeProduct {
   return {
-    name: input.name ?? '',
+    name: input.name ?? input.goodsName ?? '',
     brand: input.brand ?? null,
-    specification: input.spec ?? null,
+    specification: input.spec ?? input.standard ?? null,
     imageUrl: input.image ?? null,
   }
 }
