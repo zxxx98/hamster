@@ -1,4 +1,4 @@
-import { BrowserRouter, Redirect, Route, Switch } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 
 function LoginPage() {
   return <main>登录</main>
@@ -11,11 +11,11 @@ function InventoryPage() {
 export function App() {
   return (
     <BrowserRouter>
-      <Switch>
-        <Route exact path="/login" component={LoginPage} />
-        <Route exact path="/" component={InventoryPage} />
-        <Redirect to="/" />
-      </Switch>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/" element={<InventoryPage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </BrowserRouter>
   )
 }
