@@ -234,7 +234,7 @@ CREATE POLICY inventory_events_select_own_household ON public.inventory_events
 -- Supabase's database defaults grant broad table permissions to API roles.
 -- Stock and audit writes are deliberately restored only through the RPC below.
 REVOKE ALL ON TABLE public.inventory_items, public.inventory_events
-  FROM anon, authenticated, service_role, postgres;
+  FROM anon, authenticated, service_role;
 
 GRANT SELECT ON public.households TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.profiles TO authenticated;
@@ -375,5 +375,5 @@ END;
 $$;
 
 REVOKE ALL ON FUNCTION public.apply_inventory_action(uuid, text, integer, text) FROM PUBLIC;
-REVOKE ALL ON FUNCTION public.apply_inventory_action(uuid, text, integer, text) FROM anon, service_role, postgres;
+REVOKE ALL ON FUNCTION public.apply_inventory_action(uuid, text, integer, text) FROM anon, service_role;
 GRANT EXECUTE ON FUNCTION public.apply_inventory_action(uuid, text, integer, text) TO authenticated;
