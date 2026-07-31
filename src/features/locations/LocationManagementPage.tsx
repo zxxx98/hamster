@@ -64,7 +64,7 @@ export function LocationManagementPage() {
     }
   }, [])
 
-  useEffect(() => { void load() }, [load])
+  useEffect(() => { void load(); const refresh = () => { void load() }; window.addEventListener('household-data-updated', refresh); return () => window.removeEventListener('household-data-updated', refresh) }, [load])
 
   async function createRoom(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()

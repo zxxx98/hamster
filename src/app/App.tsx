@@ -39,7 +39,7 @@ export function App() {
     }
   }, [])
 
-  useHouseholdRealtime()
+  useHouseholdRealtime(isAuthenticated)
 
   if (isRestoring) {
     return <main aria-live="polite">正在验证登录状态…</main>

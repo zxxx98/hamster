@@ -55,7 +55,7 @@ export function InventoryListPage() {
   }, [])
 
   useEffect(() => load(), [load])
-  useEffect(() => { const refresh = () => { void load() }; window.addEventListener('inventory-updated', refresh); return () => window.removeEventListener('inventory-updated', refresh) }, [load])
+  useEffect(() => { const refresh = () => { void load() }; window.addEventListener('household-data-updated', refresh); return () => window.removeEventListener('household-data-updated', refresh) }, [load])
 
   const matchingLocations = useMemo(
     () => locations.filter((location) => !filters.roomId || location.room_id === filters.roomId),

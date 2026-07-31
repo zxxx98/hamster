@@ -1,8 +1,13 @@
 import { useEffect } from 'react'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 
-export function useHouseholdRealtime() {
+export const householdRealtimeTables = [
+  'inventory_items', 'inventory_events', 'products', 'rooms', 'storage_locations',
+] as const
+
+export function useHouseholdRealtime(enabled: boolean) {
   useEffect(() => {
+    if (!enabled) return
     let channel: RealtimeChannel | undefined
     void (async () => {
       const { supabase } = await import('../../lib/supabase')
@@ -11,10 +16,15 @@ export function useHouseholdRealtime() {
       const { data: profile } = await supabase.from('profiles').select('household_id').eq('id', userData.user.id).single()
       if (!profile) return
       channel = supabase.channel(`household-inventory-${profile.household_id}`)
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'inventory_items', filter: `household_id=eq.${profile.household_id}` }, () => window.dispatchEvent(new Event('inventory-updated')))
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'inventory_events', filter: `household_id=eq.${profile.household_id}` }, () => window.dispatchEvent(new Event('inventory-updated')))
-        .subscribe()
+      for (const table of householdRealtimeTables) {
+        channel.on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table, filter: `household_id=eq.${profile.household_id}` },
+          () => window.dispatchEvent(new Event('household-data-updated')),
+        )
+      }
+      channel.subscribe()
     })().catch(() => undefined)
     return () => { if (channel) void channel.unsubscribe() }
-  }, [])
+  }, [enabled])
 }
