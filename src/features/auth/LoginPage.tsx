@@ -2,7 +2,11 @@ import { FormEvent, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { signIn } from './api'
 
-export function LoginPage() {
+type LoginPageProps = {
+  onSession: () => void
+}
+
+export function LoginPage({ onSession }: LoginPageProps) {
   const navigate = useNavigate()
   const [username, setUsername] = useState('')
   const [token, setToken] = useState('')
@@ -16,6 +20,7 @@ export function LoginPage() {
 
     try {
       await signIn(username, token)
+      onSession()
       navigate('/', { replace: true })
     } catch (error) {
       const message = error instanceof Error ? error.message : ''

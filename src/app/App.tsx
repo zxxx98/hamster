@@ -45,7 +45,13 @@ export function App() {
       <Routes>
         <Route
           path="/login"
-          element={isAuthenticated ? <Navigate to="/" replace /> : <LoginPage />}
+          element={
+            isAuthenticated ? (
+              <Navigate to="/" replace />
+            ) : (
+              <LoginPage onSession={() => setIsAuthenticated(true)} />
+            )
+          }
         />
         <Route
           path="/"

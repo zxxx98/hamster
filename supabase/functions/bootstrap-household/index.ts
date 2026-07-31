@@ -25,6 +25,8 @@ Deno.serve(async (request) => {
     return json({ error: 'Initial setup is not authorized' }, 401)
   }
 
+  // This precheck only improves the repeated-setup response. The database's
+  // singleton index is the concurrency guard for the later insert.
   const { data: households, error: householdsError } = await serviceClient
     .from('households')
     .select('id')
@@ -68,7 +70,10 @@ Deno.serve(async (request) => {
     .single()
   if (createHouseholdError || !household) {
     await serviceClient.auth.admin.deleteUser(createdUser.user.id)
-    return json({ error: 'Initial household could not be created' }, 500)
+    return json(
+      { error: 'Initial setup is unavailable' },
+      createHouseholdError?.code === '23505' ? 409 : 500,
+    )
   }
 
   const { error: createProfileError } = await serviceClient.from('profiles').insert({

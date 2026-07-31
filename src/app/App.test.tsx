@@ -1,16 +1,27 @@
 import '@testing-library/jest-dom/vitest'
-import { cleanup, render, screen } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
+const { restoreSessionMock, signInMock } = vi.hoisted(() => ({
+  restoreSessionMock: vi.fn(),
+  signInMock: vi.fn(),
+}))
 
 vi.mock('../features/auth/api', () => ({
-  restoreSession: vi.fn().mockResolvedValue(null),
-  signIn: vi.fn(),
+  restoreSession: restoreSessionMock,
+  signIn: signInMock,
 }))
 
 import { App } from './App'
 
 afterEach(() => {
   cleanup()
+})
+
+beforeEach(() => {
+  restoreSessionMock.mockReset()
+  restoreSessionMock.mockResolvedValue(null)
+  signInMock.mockReset()
 })
 
 describe('App routes', () => {
@@ -28,5 +39,21 @@ describe('App routes', () => {
     render(<App />)
 
     expect(await screen.findByRole('heading', { name: '登录家庭库存' })).toBeInTheDocument()
+  })
+
+  it('shows the private inventory page after a successful login', async () => {
+    signInMock.mockResolvedValue({})
+    window.history.pushState({}, '', '/login')
+
+    render(<App />)
+
+    fireEvent.change(await screen.findByLabelText('账号'), { target: { value: 'member_a' } })
+    fireEvent.change(screen.getByLabelText('Token'), { target: { value: 'a-secure-member-token' } })
+    fireEvent.click(screen.getByRole('button', { name: '登录' }))
+
+    await waitFor(() => {
+      expect(screen.getByRole('main')).toHaveTextContent(/^家庭库存$/)
+    })
+    expect(signInMock).toHaveBeenCalledWith('member_a', 'a-secure-member-token')
   })
 })
