@@ -5,7 +5,7 @@ const supabaseUrl = Deno.env.get('SUPABASE_URL')
 const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 const initialSetupSecret = Deno.env.get('INITIAL_SETUP_SECRET')
 
-if (!supabaseUrl || !serviceRoleKey || !initialSetupSecret) {
+if (!supabaseUrl || !serviceRoleKey) {
   throw new Error('Supabase function environment is incomplete')
 }
 
@@ -19,6 +19,10 @@ Deno.serve(async (request) => {
 
   if (request.method !== 'POST') {
     return json({ error: 'Method not allowed' }, 405)
+  }
+
+  if (!initialSetupSecret) {
+    return json({ error: 'Initial setup is not configured' }, 503)
   }
 
   if (request.headers.get('x-initial-setup-secret') !== initialSetupSecret) {
