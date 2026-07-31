@@ -10,8 +10,23 @@ export default defineConfig({
       manifest: {
         name: '家庭库存',
         short_name: '家庭库存',
+        lang: 'zh-CN',
         display: 'standalone',
         start_url: '/',
+        theme_color: '#f6f0e6',
+        background_color: '#f6f0e6',
+        icons: [
+          {
+            src: '/pwa-192x192.png',
+            sizes: '192x192',
+            type: 'image/png',
+          },
+          {
+            src: '/pwa-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+          },
+        ],
       },
     }),
   ],
