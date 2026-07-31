@@ -18,6 +18,9 @@ describe('applyStockAction', () => {
     expect(() => applyStockAction(-1, { type: 'deplete' })).toThrow(
       'quantity must be a non-negative integer',
     )
+    expect(() => applyStockAction(1.5, { type: 'deplete' })).toThrow(
+      'quantity must be a non-negative integer',
+    )
   })
 
   it('rejects non-positive restock and consume amounts', () => {
@@ -25,6 +28,15 @@ describe('applyStockAction', () => {
       'amount must be a positive integer',
     )
     expect(() => applyStockAction(3, { type: 'consume', amount: -1 })).toThrow(
+      'amount must be a positive integer',
+    )
+  })
+
+  it('rejects non-integer restock and consume amounts', () => {
+    expect(() => applyStockAction(3, { type: 'restock', amount: 1.5 })).toThrow(
+      'amount must be a positive integer',
+    )
+    expect(() => applyStockAction(3, { type: 'consume', amount: 1.5 })).toThrow(
       'amount must be a positive integer',
     )
   })
