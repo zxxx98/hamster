@@ -39,6 +39,10 @@ src/
 │   ├── locations/
 │   │   ├── LocationManagementPage.tsx   # room/location creation and photo replacement
 │   │   └── api.ts                       # existing private photo helper
+│   ├── auth/
+│   │   ├── initialSetup.ts               # one-time bootstrap request without secret persistence
+│   │   ├── initialSetup.test.ts
+│   │   └── InitialSetupPage.tsx          # public first-run form, then normal sign-in
 │   ├── reminders/LowStockPanel.tsx      # realtime invalidation
 │   └── sync/useHouseholdRealtime.ts     # all MVP shared-table subscriptions
 └── styles.css                           # responsive app shell, controls, photo layouts
@@ -599,7 +603,183 @@ supabase/
   git commit -m "feat: refresh shared household views in realtime"
   ```
 
-### Task 6: Deploy, initialize the real household, and complete acceptance
+### Task 6: Add a secure visual first-run setup flow
+
+**Files:**
+
+- Create: `src/features/auth/initialSetup.ts`
+- Create: `src/features/auth/initialSetup.test.ts`
+- Create: `src/features/auth/InitialSetupPage.tsx`
+- Modify: `src/features/auth/LoginPage.tsx`
+- Modify: `src/app/App.tsx`
+- Modify: `src/styles.css`
+- Modify outside repository: Lucky virtual-host configuration for the PWA hostname
+
+The panel replaces the command-line bootstrap request. It does **not** remove the one-time initialization secret: a public first-run endpoint without a secret would allow any internet visitor to claim the only household. The owner enters the secret in a password field once; the browser sends it only in the existing `x-initial-setup-secret` request header, never writes it to local/session storage, source code, logs, or a built asset.
+
+- [ ] **Step 1: Place the PWA behind HTTPS before accepting any setup credential.**
+
+  The existing `http://158.178.243.20:24000` endpoint is suitable only for a non-sensitive availability check. It must not be used to submit the creator Token or initialization secret because plain HTTP exposes both in transit.
+
+  The owner must select a public PWA hostname with a valid TLS certificate (for example, a dedicated subdomain under `980204.xyz`). In Lucky, proxy that hostname to `http://127.0.0.1:24000`, preserve WebSocket upgrades, and redirect HTTP to HTTPS. Do not reuse `supabase.980204.xyz`; that hostname must continue to route to Kong on `127.0.0.1:23020`.
+
+  Verify the selected hostname before implementing the page:
+
+  ```bash
+  curl --fail --silent --show-error -I https://<pwa-hostname>/
+  curl --fail --silent --show-error -I https://<pwa-hostname>/setup
+  ```
+
+  Expected: both requests return `200`; `/setup` may currently fall back to `index.html` before the client route exists.
+
+- [ ] **Step 2: Write the failing setup-request boundary tests.**
+
+  Create `src/features/auth/initialSetup.test.ts`:
+
+  ```ts
+  import { expect, it, vi } from 'vitest'
+  import { bootstrapInitialHousehold } from './initialSetup'
+
+  const input = {
+    householdName: '我的家庭',
+    username: 'creator_1',
+    token: 'a-secure-creator-token',
+    setupSecret: 'one-time-setup-secret',
+  }
+
+  it('sends the setup secret only as the bootstrap request header', async () => {
+    const invoke = vi.fn().mockResolvedValue({ data: { id: 'creator-id', username: 'creator_1' }, error: null })
+    await expect(bootstrapInitialHousehold({ functions: { invoke } } as never, input))
+      .resolves.toEqual({ id: 'creator-id', username: 'creator_1' })
+    expect(invoke).toHaveBeenCalledWith('bootstrap-household', {
+      body: { householdName: '我的家庭', username: 'creator_1', token: 'a-secure-creator-token' },
+      headers: { 'x-initial-setup-secret': 'one-time-setup-secret' },
+    })
+  })
+
+  it('rejects an empty setup secret before making a network request', async () => {
+    const invoke = vi.fn()
+    await expect(bootstrapInitialHousehold({ functions: { invoke } } as never, { ...input, setupSecret: '  ' }))
+      .rejects.toThrow('请输入初始化密钥。')
+    expect(invoke).not.toHaveBeenCalled()
+  })
+  ```
+
+- [ ] **Step 3: Run the focused test and verify red.**
+
+  Run:
+
+  ```bash
+  npm test -- src/features/auth/initialSetup.test.ts
+  ```
+
+  Expected: fail because `./initialSetup` does not exist.
+
+- [ ] **Step 4: Implement the one-time bootstrap client.**
+
+  Create `src/features/auth/initialSetup.ts`:
+
+  ```ts
+  import { supabase } from '../../lib/supabase'
+  import { validateCredentials } from './api'
+
+  type BootstrapClient = {
+    functions: {
+      invoke: (name: string, options: {
+        body: { householdName: string; username: string; token: string }
+        headers: Record<string, string>
+      }) => Promise<{ data: unknown; error: unknown }>
+    }
+  }
+
+  export type InitialSetupInput = {
+    householdName: string
+    username: string
+    token: string
+    setupSecret: string
+  }
+
+  export async function bootstrapInitialHousehold(
+    client: BootstrapClient = supabase,
+    input: InitialSetupInput,
+  ) {
+    const householdName = input.householdName.trim()
+    const setupSecret = input.setupSecret.trim()
+    validateCredentials(input.username, input.token)
+    if (!householdName) throw new Error('请输入家庭名称。')
+    if (!setupSecret) throw new Error('请输入初始化密钥。')
+
+    const { data, error } = await client.functions.invoke('bootstrap-household', {
+      body: { householdName, username: input.username, token: input.token },
+      headers: { 'x-initial-setup-secret': setupSecret },
+    })
+    if (error) throw error
+    return data as { id: string; username: string }
+  }
+  ```
+
+  Keep the existing Edge Function contract. Its CORS allow-list already permits `x-initial-setup-secret`; do not add the secret to a Vite environment variable or any persistent browser storage.
+
+- [ ] **Step 5: Verify the client boundary is green.**
+
+  Run:
+
+  ```bash
+  npm test -- src/features/auth/initialSetup.test.ts
+  ```
+
+  Expected: both tests pass.
+
+- [ ] **Step 6: Implement `InitialSetupPage`.**
+
+  The page receives `onSession: () => void`, uses `useNavigate`, and has controlled state for `householdName` (default `我的家庭`), `username`, `token`, and `setupSecret`. Render four labelled controls:
+
+  - `家庭名称` text input;
+  - `创建者账号` text input with `autoComplete="username"`;
+  - `创建者 Token` password input with `autoComplete="new-password"`;
+  - `初始化密钥` password input with `autoComplete="off"` and help text saying it is supplied only for this one-time installation.
+
+  On submit, call `bootstrapInitialHousehold(undefined, values)`, then immediately call the existing `signIn(username, token)`. Only after sign-in succeeds, clear `token` and `setupSecret`, call `onSession()`, and navigate to `/`. Do not call `onSession()` after a failed bootstrap.
+
+  Map expected errors to user-safe messages:
+
+  - client validation errors are shown verbatim;
+  - HTTP `401`: `初始化密钥不正确。`;
+  - HTTP `409`: `该服务器已经完成初始化，请直接登录。`;
+  - HTTP `503`: `初始化暂不可用，请联系服务器管理员。`;
+  - any other failure: `无法创建家庭，请稍后重试。`.
+
+  Never render, log, or copy the entered secret/Token into the success state or URL. The layout uses the existing natural/Swiss form styling and only adds a small `已完成初始化？去登录` link.
+
+- [ ] **Step 7: Add the public route without weakening normal session routing.**
+
+  In the unauthenticated route tree in `src/app/App.tsx`, add:
+
+  ```tsx
+  <Route path="/setup" element={<InitialSetupPage onSession={() => setIsAuthenticated(true)} />} />
+  ```
+
+  Add `Link to="/setup"` labelled `首次使用？创建家庭` below the login form in `LoginPage.tsx`. In the authenticated route tree, route `/setup` to `<Navigate to="/" replace />`.
+
+  Existing unrecognized unauthenticated routes must still redirect to `/login`; `/setup` is the only public creation route.
+
+- [ ] **Step 8: Test, build, deploy, and commit the visual flow.**
+
+  Run:
+
+  ```bash
+  npm test -- src/features/auth/initialSetup.test.ts
+  npm test
+  npm run build
+  sudo docker restart hamster-web
+  curl --fail --silent --show-error -I https://<pwa-hostname>/setup
+  git add src/features/auth/initialSetup.ts src/features/auth/initialSetup.test.ts src/features/auth/InitialSetupPage.tsx src/features/auth/LoginPage.tsx src/app/App.tsx src/styles.css README.md
+  git commit -m "feat: add visual household setup"
+  ```
+
+  Update `README.md` so first-time setup instructs the owner to open `https://<pwa-hostname>/setup` rather than use `curl`; it may document the protected terminal command used to retrieve the one-time initialization secret, but must never print the secret itself.
+
+### Task 7: Deploy, initialize the real household, and complete acceptance
 
 **Files:**
 
@@ -628,22 +808,25 @@ supabase/
   curl --fail --silent --show-error -I http://127.0.0.1:24000/inventory/new
   curl --fail --silent --show-error -I http://158.178.243.20:24000/
   curl --fail --silent --show-error -I http://158.178.243.20:24000/locations
+  curl --fail --silent --show-error -I https://<pwa-hostname>/setup
   ```
 
-  Expected: four HTTP `200` responses. This checks SPA deep-link fallback; it does not authenticate users.
+  Expected: five HTTP `200` responses. The first four checks prove local/direct deep-link fallback; the final HTTPS check is the only endpoint that may be used for setup credentials.
 
-- [ ] **Step 3: Request the only required external input.**
+- [ ] **Step 3: Create the first household from the HTTPS setup panel.**
 
-  The first family cannot be created safely without the product owner supplying:
+  In a private browser session, open `https://<pwa-hostname>/setup`. The owner enters:
 
+  - the desired family name;
   - a creator username matching `[a-z0-9_-]{3,32}`;
-  - a creator Token of at least 16 characters.
+  - a creator Token of at least 16 characters;
+  - the one-time initialization secret retrieved by the server operator through a protected terminal.
 
-  Do not invent, log, commit, or echo either value. Use the existing initial-setup secret only through the protected interactive command already documented in `README.md`.
+  Do not place any of these values in chat, git, screenshots, a URL, browser storage, or logs. The successful panel response signs the creator in and redirects to `/`.
 
-- [ ] **Step 4: Bootstrap exactly one real family and remove the setup capability.**
+- [ ] **Step 4: Remove the bootstrap capability immediately after visual setup succeeds.**
 
-  After the owner supplies those two values, run the documented interactive `bootstrap-household` request. On a successful response, immediately:
+  Once the panel reports success, immediately run:
 
   ```bash
   sudo rm /opt/supabase/.env.initial-setup
@@ -656,13 +839,13 @@ supabase/
     http://127.0.0.1:23020/functions/v1/bootstrap-household
   ```
 
-  Expected: initial function call succeeds exactly once; after recreation, the final probe returns `503` because the setup secret no longer exists. Never include the actual setup secret in a command transcript.
+  Expected: the final probe returns `503` because the setup secret no longer exists. Never include the actual setup secret in a command transcript.
 
 - [ ] **Step 5: Perform authenticated MVP acceptance with two browser sessions.**
 
   In session A as creator:
 
-  1. log in once with username and Token, reload, and verify the session restores silently;
+  1. use the HTTPS `/setup` form to create the household, confirm its automatic sign-in, reload, and verify the session restores silently;
   2. create a `厨房` room and `橱柜` storage location; upload a supported location photo and verify it renders;
   3. scan or manually enter a product with a barcode, category, product photo, quantity, unit, and threshold;
   4. enter the same barcode at a second location and verify it creates a second inventory item linked to the existing product, not a second product row;
@@ -670,7 +853,7 @@ supabase/
   6. set inventory at or below threshold, reload, ignore it, restore it in detail, and restock above threshold; verify the reminder state transitions correctly;
   7. create a member, login in session B, and verify the session-B list/detail/reminder pages refresh after session-A stock and location updates.
 
-  In a browser DevTools network view, verify no Free API credential, setup secret, or service-role key appears in client requests. A product or location photo URL may be signed and time-limited; it must not be a public bucket URL.
+  In a browser DevTools network view, verify no Free API credential or service-role key appears in client requests. The initialization secret is visible only in the single, owner-initiated `/setup` request because it was typed into the form; after Step 4, confirm no later request contains it. A product or location photo URL may be signed and time-limited; it must not be a public bucket URL.
 
 - [ ] **Step 6: Complete real-device checks and documentation.**
 
