@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { LowStockPanel } from '../reminders/LowStockPanel'
 
@@ -15,7 +15,7 @@ export function InventoryListPage() {
   const [items, setItems] = useState<InventoryRow[]>([])
   const [message, setMessage] = useState('正在读取库存…')
 
-  useEffect(() => {
+  const load = useCallback(() => {
     let active = true
     void (async () => {
       try {
@@ -35,6 +35,8 @@ export function InventoryListPage() {
     })()
     return () => { active = false }
   }, [])
+  useEffect(() => load(), [load])
+  useEffect(() => { const refresh = () => { void load() }; window.addEventListener('inventory-updated', refresh); return () => window.removeEventListener('inventory-updated', refresh) }, [load])
 
   return <main><header><p>家藏</p><h1>家庭库存</h1><Link to="/inventory/new">扫码入库</Link></header><LowStockPanel />{message ? <p>{message}</p> : <ul>{items.map((item) => { const product = item.products[0]; const location = item.storage_locations[0]; return <li key={item.id}><Link to={`/inventory/${item.id}`}><strong>{product?.name ?? '未命名商品'}</strong><span>{product?.specification ?? ''}</span><b data-low={item.quantity <= item.low_stock_threshold}>{item.quantity} {item.unit}</b><small>{location?.rooms[0]?.name ?? '未设置房间'} / {location?.name ?? '未设置存放点'}</small></Link></li> })}</ul>}</main>
 }

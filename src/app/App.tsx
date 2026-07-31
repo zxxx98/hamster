@@ -6,6 +6,7 @@ import { InventoryListPage } from '../features/inventory/InventoryListPage'
 import { InventoryEntryPage } from '../features/inventory/InventoryEntryPage'
 import { InventoryDetailPage } from '../features/inventory/InventoryDetailPage'
 import { MemberManagementPage } from '../features/auth/MemberManagementPage'
+import { useHouseholdRealtime } from '../features/sync/useHouseholdRealtime'
 
 export function App() {
   const [isRestoring, setIsRestoring] = useState(true)
@@ -35,6 +36,8 @@ export function App() {
       isActive = false
     }
   }, [])
+
+  useHouseholdRealtime()
 
   if (isRestoring) {
     return <main aria-live="polite">正在验证登录状态…</main>
