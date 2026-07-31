@@ -1,6 +1,12 @@
 import '@testing-library/jest-dom/vitest'
 import { cleanup, render, screen } from '@testing-library/react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+
+vi.mock('../features/auth/api', () => ({
+  restoreSession: vi.fn().mockResolvedValue(null),
+  signIn: vi.fn(),
+}))
+
 import { App } from './App'
 
 afterEach(() => {
@@ -8,19 +14,19 @@ afterEach(() => {
 })
 
 describe('App routes', () => {
-  it('renders the login page at /login', () => {
+  it('renders the login page at /login', async () => {
     window.history.pushState({}, '', '/login')
 
     render(<App />)
 
-    expect(screen.getByRole('main')).toHaveTextContent('登录')
+    expect(await screen.findByRole('heading', { name: '登录家庭库存' })).toBeInTheDocument()
   })
 
-  it('redirects unknown routes to the household inventory page', async () => {
+  it('redirects unknown unauthenticated routes to login', async () => {
     window.history.pushState({}, '', '/unavailable')
 
     render(<App />)
 
-    expect(await screen.findByRole('main')).toHaveTextContent('家庭库存')
+    expect(await screen.findByRole('heading', { name: '登录家庭库存' })).toBeInTheDocument()
   })
 })
