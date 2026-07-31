@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { LowStockPanel } from '../reminders/LowStockPanel'
 
 type InventoryRow = {
   id: string
@@ -35,5 +36,5 @@ export function InventoryListPage() {
     return () => { active = false }
   }, [])
 
-  return <main><header><p>家藏</p><h1>家庭库存</h1><Link to="/inventory/new">扫码入库</Link></header>{message ? <p>{message}</p> : <ul>{items.map((item) => { const product = item.products[0]; const location = item.storage_locations[0]; return <li key={item.id}><Link to={`/inventory/${item.id}`}><strong>{product?.name ?? '未命名商品'}</strong><span>{product?.specification ?? ''}</span><b data-low={item.quantity <= item.low_stock_threshold}>{item.quantity} {item.unit}</b><small>{location?.rooms[0]?.name ?? '未设置房间'} / {location?.name ?? '未设置存放点'}</small></Link></li> })}</ul>}</main>
+  return <main><header><p>家藏</p><h1>家庭库存</h1><Link to="/inventory/new">扫码入库</Link></header><LowStockPanel />{message ? <p>{message}</p> : <ul>{items.map((item) => { const product = item.products[0]; const location = item.storage_locations[0]; return <li key={item.id}><Link to={`/inventory/${item.id}`}><strong>{product?.name ?? '未命名商品'}</strong><span>{product?.specification ?? ''}</span><b data-low={item.quantity <= item.low_stock_threshold}>{item.quantity} {item.unit}</b><small>{location?.rooms[0]?.name ?? '未设置房间'} / {location?.name ?? '未设置存放点'}</small></Link></li> })}</ul>}</main>
 }
