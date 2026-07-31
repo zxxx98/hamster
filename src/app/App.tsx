@@ -5,6 +5,7 @@ import { restoreSession } from '../features/auth/api'
 import { InventoryListPage } from '../features/inventory/InventoryListPage'
 import { InventoryEntryPage } from '../features/inventory/InventoryEntryPage'
 import { InventoryDetailPage } from '../features/inventory/InventoryDetailPage'
+import { MemberManagementPage } from '../features/auth/MemberManagementPage'
 
 export function App() {
   const [isRestoring, setIsRestoring] = useState(true)
@@ -58,6 +59,7 @@ export function App() {
         />
         <Route path="/inventory/new" element={isAuthenticated ? <InventoryEntryPage /> : <Navigate to="/login" replace />} />
         <Route path="/inventory/:id" element={isAuthenticated ? <InventoryDetailPage /> : <Navigate to="/login" replace />} />
+        <Route path="/members" element={isAuthenticated ? <MemberManagementPage /> : <Navigate to="/login" replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
