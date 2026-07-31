@@ -5,6 +5,7 @@
 - 部署目录：`/opt/supabase`
 - 编排方式：官方 Supabase Docker Compose 配置
 - 环境变量与密钥：`/opt/supabase/.env`，权限为 `0600`，不得提交或复制到仓库
+- 持久化数据目录位于独立数据盘 `/mnt/data/supabase`：PostgreSQL 为 `/mnt/data/supabase/db/data`，Storage 对象文件为 `/mnt/data/supabase/storage`。Docker 镜像与运行时仍在系统盘；增长的数据不会占用系统盘。
 - 日常服务管理：
 
 ```bash
@@ -14,6 +15,8 @@ sudo docker compose up -d
 sudo docker compose down
 sudo docker compose logs -f kong auth db
 ```
+
+不要删除 `/mnt/data/supabase`；它包含家庭资产应用的数据库和上传的地点照片等对象文件。迁移或恢复数据前，先停止这套 Compose 服务并保留一份可验证的备份。
 
 ## 网络边界
 
