@@ -1,7 +1,7 @@
 import type { StockAction } from '../../domain/inventory'
 
 type RpcClient = {
-  rpc: (name: string, args: { item_id: string; action: StockAction['type']; amount: number | null; note: string | null }) => Promise<{ data: unknown; error: unknown }>
+  rpc: (name: string, args: { item_id: string; action: StockAction['type']; amount: number | null; note: string | null }) => PromiseLike<{ data: unknown; error: unknown }>
 }
 
 export async function changeStock(client: RpcClient, itemId: string, action: StockAction, note: string | null = null) {
