@@ -9,12 +9,14 @@ type BarcodeScannerProps = {
 
 export function BarcodeScanner({ onProduct, onManualEntry }: BarcodeScannerProps) {
   const [message, setMessage] = useState<string | null>(null)
+  const [lastBarcode, setLastBarcode] = useState<string | null>(null)
 
   useEffect(() => {
     const scanner = new Html5QrcodeScanner('barcode-reader', { fps: 10, qrbox: { width: 240, height: 160 } }, false)
     scanner.render(
       async (code) => {
         await scanner.clear()
+        setLastBarcode(code)
         try {
           const result = await lookupBarcode(code)
           if (result.found && result.product) onProduct(result.product, code)
@@ -28,5 +30,5 @@ export function BarcodeScanner({ onProduct, onManualEntry }: BarcodeScannerProps
     return () => { void scanner.clear().catch(() => undefined) }
   }, [onProduct])
 
-  return <section><div id="barcode-reader" /><p>{message ?? '请允许相机权限以扫描条形码。'}</p><button type="button" onClick={() => onManualEntry(null)}>手动填写商品信息</button></section>
+  return <section><div id="barcode-reader" /><p>{message ?? '请允许相机权限以扫描条形码。'}</p><button type="button" onClick={() => onManualEntry(lastBarcode)}>手动填写商品信息</button></section>
 }
