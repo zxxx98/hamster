@@ -1,7 +1,13 @@
 \set ON_ERROR_STOP on
 
--- This script is deliberately run inside the caller's transaction.  It leaves
--- no auth or application data behind when followed by ROLLBACK.
+-- Direct `psql -f` execution is safe: fixtures are always rolled back.  The
+-- outer_transaction switch lets migration validation keep schema and fixtures
+-- in one outer transaction without issuing a nested BEGIN.
+\if :{?outer_transaction}
+\else
+BEGIN;
+\endif
+
 INSERT INTO auth.users (id, aud, role, email, email_confirmed_at, created_at, updated_at)
 VALUES
   ('10000000-0000-0000-0000-000000000001', 'authenticated', 'authenticated', 'alice-rls-test@example.invalid', now(), now(), now()),
@@ -84,3 +90,8 @@ END;
 $$;
 
 RESET ROLE;
+
+\if :{?outer_transaction}
+\else
+ROLLBACK;
+\endif
