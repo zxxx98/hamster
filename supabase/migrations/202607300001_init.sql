@@ -8,8 +8,6 @@ CREATE TABLE public.households (
   updated_at timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE UNIQUE INDEX households_singleton_idx ON public.households ((true));
-
 CREATE TABLE public.profiles (
   id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   household_id uuid NOT NULL REFERENCES public.households(id) ON DELETE CASCADE,
