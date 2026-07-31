@@ -8,6 +8,7 @@ import { InventoryDetailPage } from '../features/inventory/InventoryDetailPage'
 import { MemberManagementPage } from '../features/auth/MemberManagementPage'
 import { LocationManagementPage } from '../features/locations/LocationManagementPage'
 import { useHouseholdRealtime } from '../features/sync/useHouseholdRealtime'
+import { AppNavigation } from './AppNavigation'
 
 export function App() {
   const [isRestoring, setIsRestoring] = useState(true)
@@ -46,27 +47,21 @@ export function App() {
 
   return (
     <BrowserRouter>
-      <Routes>
-        <Route
-          path="/login"
-          element={
-            isAuthenticated ? (
-              <Navigate to="/" replace />
-            ) : (
-              <LoginPage onSession={() => setIsAuthenticated(true)} />
-            )
-          }
-        />
-        <Route
-          path="/"
-          element={isAuthenticated ? <InventoryListPage /> : <Navigate to="/login" replace />}
-        />
-        <Route path="/inventory/new" element={isAuthenticated ? <InventoryEntryPage /> : <Navigate to="/login" replace />} />
-        <Route path="/inventory/:id" element={isAuthenticated ? <InventoryDetailPage /> : <Navigate to="/login" replace />} />
-        <Route path="/locations" element={isAuthenticated ? <LocationManagementPage /> : <Navigate to="/login" replace />} />
-        <Route path="/members" element={isAuthenticated ? <MemberManagementPage /> : <Navigate to="/login" replace />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      {isAuthenticated ? <div className="app-shell">
+        <AppNavigation />
+        <div className="app-content"><Routes>
+          <Route path="/login" element={<Navigate to="/" replace />} />
+          <Route path="/" element={<InventoryListPage />} />
+          <Route path="/inventory/new" element={<InventoryEntryPage />} />
+          <Route path="/inventory/:id" element={<InventoryDetailPage />} />
+          <Route path="/locations" element={<LocationManagementPage />} />
+          <Route path="/members" element={<MemberManagementPage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes></div>
+      </div> : <Routes>
+        <Route path="/login" element={<LoginPage onSession={() => setIsAuthenticated(true)} />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>}
     </BrowserRouter>
   )
 }

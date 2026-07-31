@@ -1,1 +1,221 @@
-:root{font-family:"PingFang SC","Noto Sans SC",sans-serif;color:#28332D;background:#F6F3EC}*{box-sizing:border-box}body{margin:0;background:#F6F3EC}main{max-width:880px;margin:0 auto;padding:40px 28px 80px}header{display:flex;gap:18px;align-items:baseline;flex-wrap:wrap;border-bottom:1px solid #DFDDD5;padding-bottom:22px;margin-bottom:26px}h1,h2{font-family:"Songti SC","Noto Serif SC",serif}h1{font-size:34px;margin:0}h2{font-size:22px;margin-top:32px}a{color:#5E7966;text-decoration:none}button,header a{border:0;border-radius:10px;background:#5E7966;color:#fff;padding:10px 14px;font:inherit;cursor:pointer}button:disabled{opacity:.55}form{display:grid;gap:15px;max-width:520px}label{display:grid;gap:6px;color:#798078;font-size:14px}input,select{padding:11px;border:1px solid #DFDDD5;border-radius:9px;background:#FFFDFA;color:#28332D;font:inherit}ul{padding:0;margin:0;list-style:none}li{border-bottom:1px solid #DFDDD5;padding:16px 0;display:grid;gap:5px}li a{display:grid;gap:5px;color:#28332D}strong{font-size:17px}span,small{color:#798078}b{font-family:"Songti SC",serif;font-size:24px;color:#5E7966}img{display:block;max-width:320px;width:100%;max-height:220px;object-fit:cover;border-radius:10px}[data-low="true"]{color:#C77845}section[aria-label="低库存提醒"]{border-left:4px solid #C77845;background:#F7EBE1;padding:16px 18px;margin-bottom:28px;border-radius:0 12px 12px 0}section button{background:transparent;color:#5E7966;padding:0;text-align:left}.location-row{gap:10px}.location-row label{max-width:320px}@media(max-width:600px){main{padding:25px 18px 96px}h1{font-size:30px}header{display:grid;gap:10px}header a{width:max-content}form{max-width:none}}
+:root {
+  font-family: "PingFang SC", "Noto Sans SC", sans-serif;
+  color: #28332D;
+  background: #F6F3EC;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: #F6F3EC;
+}
+
+button, input, select { font: inherit; }
+
+main {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 40px 40px 80px;
+}
+
+header {
+  display: flex;
+  gap: 18px;
+  align-items: baseline;
+  flex-wrap: wrap;
+  border-bottom: 1px solid #DFDDD5;
+  padding-bottom: 22px;
+  margin-bottom: 26px;
+}
+
+h1, h2 { font-family: "Songti SC", "Noto Serif SC", serif; }
+h1 { margin: 0; font-size: 34px; }
+h2 { margin-top: 32px; font-size: 22px; }
+
+a { color: #5E7966; text-decoration: none; }
+
+button, header a, .app-scan-link {
+  border: 0;
+  border-radius: 10px;
+  background: #5E7966;
+  color: #fff;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: background 160ms ease, transform 160ms ease;
+}
+
+button:hover:not(:disabled), header a:hover, .app-scan-link:hover {
+  background: #486451;
+  transform: translateY(-1px);
+}
+
+button:disabled { opacity: .55; cursor: not-allowed; }
+
+form { display: grid; gap: 15px; max-width: 520px; }
+
+label {
+  display: grid;
+  gap: 6px;
+  color: #798078;
+  font-size: 14px;
+}
+
+input, select {
+  width: 100%;
+  padding: 11px;
+  border: 1px solid #DFDDD5;
+  border-radius: 9px;
+  background: #FFFDFA;
+  color: #28332D;
+}
+
+ul { padding: 0; margin: 0; list-style: none; }
+
+li {
+  display: grid;
+  gap: 5px;
+  border-bottom: 1px solid #DFDDD5;
+  padding: 16px 0;
+}
+
+li a { display: grid; gap: 5px; color: #28332D; }
+strong { font-size: 17px; }
+span, small { color: #798078; }
+b { color: #5E7966; font-family: "Songti SC", serif; font-size: 24px; }
+
+img {
+  display: block;
+  max-width: 320px;
+  width: 100%;
+  max-height: 220px;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+[data-low="true"] { color: #C77845; }
+
+section[aria-label="低库存提醒"] {
+  margin-bottom: 28px;
+  border-left: 4px solid #C77845;
+  border-radius: 0 12px 12px 0;
+  background: #F7EBE1;
+  padding: 16px 18px;
+}
+
+section button {
+  background: transparent;
+  color: #5E7966;
+  padding: 0;
+  text-align: left;
+}
+
+.location-row { gap: 10px; }
+.location-row label { max-width: 320px; }
+
+.app-shell {
+  display: grid;
+  min-height: 100vh;
+  grid-template-columns: 210px minmax(0, 1fr);
+}
+
+.app-navigation {
+  position: sticky;
+  top: 0;
+  display: flex;
+  height: 100vh;
+  flex-direction: column;
+  gap: 28px;
+  border-right: 1px solid #DFDDD5;
+  padding: 34px 22px;
+}
+
+.app-brand {
+  color: #28332D;
+  font-family: "Songti SC", "Noto Serif SC", serif;
+  font-size: 30px;
+  letter-spacing: .08em;
+}
+
+.app-nav-links { display: grid; gap: 6px; }
+
+.app-nav-links a {
+  border-radius: 8px;
+  color: #798078;
+  padding: 10px 12px;
+  transition: background 160ms ease, color 160ms ease;
+}
+
+.app-nav-links a:hover, .app-nav-links a[aria-current="page"] {
+  background: #E5ECE3;
+  color: #28332D;
+}
+
+.app-scan-link { margin-top: auto; text-align: center; }
+.app-content { min-width: 0; }
+
+.inventory-filters {
+  display: grid;
+  max-width: none;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0 0 26px;
+  border-bottom: 1px solid #DFDDD5;
+  padding-bottom: 22px;
+}
+
+.low-stock-filter {
+  display: flex;
+  align-items: center;
+  align-self: end;
+  min-height: 44px;
+  gap: 8px;
+  color: #28332D;
+}
+
+.low-stock-filter input { width: auto; }
+
+@media (max-width: 760px) {
+  .app-shell { display: block; }
+
+  .app-navigation {
+    position: fixed;
+    z-index: 5;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    height: 68px;
+    flex-direction: row;
+    align-items: center;
+    gap: 0;
+    border-top: 1px solid #DFDDD5;
+    border-right: 0;
+    background: #FFFDFA;
+    padding: 8px 16px;
+  }
+
+  .app-brand { display: none; }
+  .app-nav-links { display: flex; flex: 1; justify-content: space-around; }
+  .app-nav-links a { padding: 8px; font-size: 13px; }
+
+  .app-scan-link {
+    position: absolute;
+    right: 20px;
+    bottom: 56px;
+    margin: 0;
+    box-shadow: 0 8px 18px rgba(40, 51, 45, .18);
+  }
+
+  main { padding: 28px 20px 110px; }
+  h1 { font-size: 30px; }
+  header { display: grid; gap: 10px; }
+  header a { width: max-content; }
+  form { max-width: none; }
+  .inventory-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .low-stock-filter { grid-column: span 2; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
+}
