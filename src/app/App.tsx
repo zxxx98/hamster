@@ -2,10 +2,7 @@ import { useEffect, useState } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { LoginPage } from '../features/auth/LoginPage'
 import { restoreSession } from '../features/auth/api'
-
-function InventoryPage() {
-  return <main>家庭库存</main>
-}
+import { InventoryListPage } from '../features/inventory/InventoryListPage'
 
 export function App() {
   const [isRestoring, setIsRestoring] = useState(true)
@@ -55,7 +52,7 @@ export function App() {
         />
         <Route
           path="/"
-          element={isAuthenticated ? <InventoryPage /> : <Navigate to="/login" replace />}
+          element={isAuthenticated ? <InventoryListPage /> : <Navigate to="/login" replace />}
         />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

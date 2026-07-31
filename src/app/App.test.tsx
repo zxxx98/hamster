@@ -52,7 +52,7 @@ describe('App routes', () => {
     fireEvent.click(screen.getByRole('button', { name: '登录' }))
 
     await waitFor(() => {
-      expect(screen.getByRole('main')).toHaveTextContent(/^家庭库存$/)
+      expect(screen.getByRole('heading', { name: '家庭库存' })).toBeInTheDocument()
     })
     expect(signInMock).toHaveBeenCalledWith('member_a', 'a-secure-member-token')
   })
