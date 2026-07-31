@@ -4,6 +4,7 @@ import { changeStock } from './api'
 import { BarcodeScanner } from '../catalog/BarcodeScanner'
 import type { BarcodeProduct } from '../catalog/api'
 import { uploadProductPhoto } from '../catalog/productPhoto'
+import { resolveEntryProduct } from './entryProduct'
 
 export function InventoryEntryPage() {
   const navigate = useNavigate()
@@ -13,6 +14,7 @@ export function InventoryEntryPage() {
   const [barcode, setBarcode] = useState('')
   const [brand, setBrand] = useState('')
   const [specification, setSpecification] = useState('')
+  const [category, setCategory] = useState('')
   const [photo, setPhoto] = useState<File | null>(null)
 
   function applyBarcodeProduct(product: BarcodeProduct, code: string) {
@@ -41,9 +43,35 @@ export function InventoryEntryPage() {
       const { data: profile, error: profileError } = await supabase.from('profiles').select('household_id').eq('id', userId).single()
       if (profileError || !profile) throw new Error('未找到家庭信息')
       const householdId = profile.household_id
-      const { data: product, error: productError } = await supabase.from('products').insert({ household_id: householdId, name: productName, barcode: barcode || null, brand: brand || null, specification: specification || null }).select('id').single()
-      if (productError || !product) throw productError ?? new Error('无法创建商品')
-      if (photo) { const imagePath = await uploadProductPhoto(householdId, product.id, photo); const { error } = await supabase.from('products').update({ image_url: imagePath }).eq('id', product.id); if (error) throw error }
+      const resolvedProduct = await resolveEntryProduct({
+        async findByBarcode(id, code) {
+          const { data, error } = await supabase
+            .from('products')
+            .select('id')
+            .eq('household_id', id)
+            .eq('barcode', code)
+            .maybeSingle()
+          if (error) throw error
+          return data
+        },
+        async create(id, input) {
+          const { data, error } = await supabase
+            .from('products')
+            .insert({ household_id: id, ...input })
+            .select('id')
+            .single()
+          if (error || !data) throw error ?? new Error('无法创建商品')
+          return data
+        },
+      }, householdId, {
+        name: productName,
+        barcode,
+        brand: brand.trim() || null,
+        specification: specification.trim() || null,
+        category: category.trim() || null,
+      })
+      const product = resolvedProduct.product
+      if (photo && resolvedProduct.wasCreated) { const imagePath = await uploadProductPhoto(householdId, product.id, photo); const { error } = await supabase.from('products').update({ image_url: imagePath }).eq('id', product.id); if (error) throw error }
       const { data: room, error: roomError } = await supabase.from('rooms').upsert({ household_id: householdId, name: roomName }, { onConflict: 'household_id,name' }).select('id').single()
       if (roomError || !room) throw roomError ?? new Error('无法保存房间')
       const { data: location, error: locationError } = await supabase.from('storage_locations').upsert({ household_id: householdId, room_id: room.id, name: locationName }, { onConflict: 'household_id,room_id,name' }).select('id').single()
@@ -57,5 +85,5 @@ export function InventoryEntryPage() {
     } finally { setIsSaving(false) }
   }
 
-  return <main><header><a href="/">返回库存</a><h1>录入物品</h1><p>扫码结果可修改；初始数量会记录为一次补货。</p></header><BarcodeScanner onProduct={applyBarcodeProduct} onManualEntry={(code) => { if (code) setBarcode(code) }} /><form onSubmit={save}><label>商品名称<input name="name" value={name} onChange={(event) => setName(event.target.value)} required /></label><label>条形码<input name="barcode" inputMode="numeric" value={barcode} onChange={(event) => setBarcode(event.target.value)} /></label><label>品牌<input name="brand" value={brand} onChange={(event) => setBrand(event.target.value)} /></label><label>规格<input name="specification" value={specification} onChange={(event) => setSpecification(event.target.value)} /></label><label>商品图片<input name="photo" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" onChange={(event) => setPhoto(event.target.files?.[0] ?? null)} /></label><label>房间<input name="room" placeholder="厨房" required /></label><label>存放点<input name="location" placeholder="橱柜" required /></label><label>数量<input name="quantity" type="number" min="1" step="1" required /></label><label>单位<input name="unit" defaultValue="包" required /></label><label>低库存阈值<input name="threshold" type="number" min="0" step="1" defaultValue="1" required /></label>{message ? <p role="alert">{message}</p> : null}<button type="submit" disabled={isSaving}>{isSaving ? '正在保存…' : '保存入库'}</button></form></main>
+  return <main><header><a href="/">返回库存</a><h1>录入物品</h1><p>扫码结果可修改；初始数量会记录为一次补货。</p></header><BarcodeScanner onProduct={applyBarcodeProduct} onManualEntry={(code) => { if (code) setBarcode(code) }} /><form onSubmit={save}><label>商品名称<input name="name" value={name} onChange={(event) => setName(event.target.value)} required /></label><label>条形码<input name="barcode" inputMode="numeric" value={barcode} onChange={(event) => setBarcode(event.target.value)} /></label><label>品牌<input name="brand" value={brand} onChange={(event) => setBrand(event.target.value)} /></label><label>规格<input name="specification" value={specification} onChange={(event) => setSpecification(event.target.value)} /></label><label>分类<input name="category" value={category} onChange={(event) => setCategory(event.target.value)} /></label><label>商品图片<input name="photo" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" onChange={(event) => setPhoto(event.target.files?.[0] ?? null)} /></label><label>房间<input name="room" placeholder="厨房" required /></label><label>存放点<input name="location" placeholder="橱柜" required /></label><label>数量<input name="quantity" type="number" min="1" step="1" required /></label><label>单位<input name="unit" defaultValue="包" required /></label><label>低库存阈值<input name="threshold" type="number" min="0" step="1" defaultValue="1" required /></label>{message ? <p role="alert">{message}</p> : null}<button type="submit" disabled={isSaving}>{isSaving ? '正在保存…' : '保存入库'}</button></form></main>
 }

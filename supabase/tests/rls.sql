@@ -16,34 +16,43 @@ VALUES
 
 INSERT INTO public.households (id, name, created_by)
 VALUES
-  ('30000000-0000-0000-0000-000000000003', 'Alice household', '10000000-0000-0000-0000-000000000001'),
-  ('40000000-0000-0000-0000-000000000004', 'Bob household', '20000000-0000-0000-0000-000000000002');
+  ('30000000-0000-0000-0000-000000000003', 'Alice household', '10000000-0000-0000-0000-000000000001');
 
 INSERT INTO public.profiles (id, household_id, display_name)
 VALUES
   ('10000000-0000-0000-0000-000000000001', '30000000-0000-0000-0000-000000000003', 'Alice'),
-  ('20000000-0000-0000-0000-000000000002', '40000000-0000-0000-0000-000000000004', 'Bob'),
   ('d0000000-0000-0000-0000-000000000013', '30000000-0000-0000-0000-000000000003', 'Charlie');
 
 INSERT INTO public.products (id, household_id, name, barcode)
 VALUES
-  ('50000000-0000-0000-0000-000000000005', '30000000-0000-0000-0000-000000000003', 'Alice tissues', '6900000000001'),
-  ('60000000-0000-0000-0000-000000000006', '40000000-0000-0000-0000-000000000004', 'Bob tissues', '6900000000002');
+  ('50000000-0000-0000-0000-000000000005', '30000000-0000-0000-0000-000000000003', 'Alice tissues', '6900000000001');
+
+DO $$
+BEGIN
+  INSERT INTO public.products (household_id, name, barcode)
+  VALUES (
+    '30000000-0000-0000-0000-000000000003',
+    'Duplicate Alice tissues',
+    '6900000000001'
+  );
+  RAISE EXCEPTION 'duplicate household barcode unexpectedly succeeded';
+EXCEPTION
+  WHEN unique_violation THEN
+    NULL;
+END;
+$$;
 
 INSERT INTO public.rooms (id, household_id, name)
 VALUES
-  ('70000000-0000-0000-0000-000000000007', '30000000-0000-0000-0000-000000000003', 'Alice kitchen'),
-  ('80000000-0000-0000-0000-000000000008', '40000000-0000-0000-0000-000000000004', 'Bob kitchen');
+  ('70000000-0000-0000-0000-000000000007', '30000000-0000-0000-0000-000000000003', 'Alice kitchen');
 
 INSERT INTO public.storage_locations (id, household_id, room_id, name)
 VALUES
-  ('90000000-0000-0000-0000-000000000009', '30000000-0000-0000-0000-000000000003', '70000000-0000-0000-0000-000000000007', 'Alice cupboard'),
-  ('a0000000-0000-0000-0000-000000000010', '40000000-0000-0000-0000-000000000004', '80000000-0000-0000-0000-000000000008', 'Bob cupboard');
+  ('90000000-0000-0000-0000-000000000009', '30000000-0000-0000-0000-000000000003', '70000000-0000-0000-0000-000000000007', 'Alice cupboard');
 
 INSERT INTO public.inventory_items (id, household_id, product_id, location_id, quantity, unit, low_stock_threshold)
 VALUES
-  ('b0000000-0000-0000-0000-000000000011', '30000000-0000-0000-0000-000000000003', '50000000-0000-0000-0000-000000000005', '90000000-0000-0000-0000-000000000009', 3, 'pack', 1),
-  ('c0000000-0000-0000-0000-000000000012', '40000000-0000-0000-0000-000000000004', '60000000-0000-0000-0000-000000000006', 'a0000000-0000-0000-0000-000000000010', 7, 'pack', 2);
+  ('b0000000-0000-0000-0000-000000000011', '30000000-0000-0000-0000-000000000003', '50000000-0000-0000-0000-000000000005', '90000000-0000-0000-0000-000000000009', 3, 'pack', 1);
 
 SET LOCAL ROLE authenticated;
 SELECT set_config('request.jwt.claim.sub', '10000000-0000-0000-0000-000000000001', true);
@@ -54,28 +63,43 @@ BEGIN
     RAISE EXCEPTION 'Alice must see exactly one inventory item from her household';
   END IF;
 
-  IF EXISTS (SELECT 1 FROM public.inventory_items WHERE id = 'c0000000-0000-0000-0000-000000000012') THEN
-    RAISE EXCEPTION 'Alice can see Bob household inventory';
-  END IF;
 END;
 $$;
 
+SELECT set_config('request.jwt.claim.sub', '20000000-0000-0000-0000-000000000002', true);
+
 DO $$
 BEGIN
+  IF (SELECT count(*) FROM public.inventory_items) <> 0 THEN
+    RAISE EXCEPTION 'a user without a household can read inventory';
+  END IF;
+
   INSERT INTO public.inventory_items (household_id, product_id, location_id, unit, low_stock_threshold)
   VALUES (
-    '40000000-0000-0000-0000-000000000004',
-    '60000000-0000-0000-0000-000000000006',
-    'a0000000-0000-0000-0000-000000000010',
+    '30000000-0000-0000-0000-000000000003',
+    '50000000-0000-0000-0000-000000000005',
+    '90000000-0000-0000-0000-000000000009',
     'pack',
     0
   );
-  RAISE EXCEPTION 'cross-household insert unexpectedly succeeded';
+  RAISE EXCEPTION 'a user without a household inserted inventory';
 EXCEPTION
   WHEN insufficient_privilege THEN
     NULL;
 END;
 $$;
+
+DO $$
+BEGIN
+  PERFORM public.apply_inventory_action('b0000000-0000-0000-0000-000000000011', 'consume', 1, NULL);
+  RAISE EXCEPTION 'a user without a household changed inventory';
+EXCEPTION
+  WHEN invalid_authorization_specification THEN
+    NULL;
+END;
+$$;
+
+SELECT set_config('request.jwt.claim.sub', '10000000-0000-0000-0000-000000000001', true);
 
 DO $$
 DECLARE
@@ -100,16 +124,6 @@ BEGIN
   ) THEN
     RAISE EXCEPTION 'inventory action did not append the expected immutable event';
   END IF;
-END;
-$$;
-
-DO $$
-BEGIN
-  PERFORM public.apply_inventory_action('c0000000-0000-0000-0000-000000000012', 'consume', 1, NULL);
-  RAISE EXCEPTION 'cross-household inventory action unexpectedly succeeded';
-EXCEPTION
-  WHEN no_data_found THEN
-    NULL;
 END;
 $$;
 
