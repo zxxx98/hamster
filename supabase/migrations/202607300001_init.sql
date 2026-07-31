@@ -231,15 +231,21 @@ CREATE POLICY inventory_events_select_own_household ON public.inventory_events
   FOR SELECT TO authenticated
   USING (household_id = public.current_household_id());
 
-CREATE POLICY inventory_events_insert_own_household ON public.inventory_events
-  FOR INSERT TO authenticated
-  WITH CHECK (household_id = public.current_household_id());
+-- Supabase's database defaults grant broad table permissions to API roles.
+-- Stock and audit writes are deliberately restored only through the RPC below.
+REVOKE ALL ON TABLE public.inventory_items, public.inventory_events
+  FROM anon, authenticated, service_role, postgres;
 
 GRANT SELECT ON public.households TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.profiles TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.products, public.rooms,
-  public.storage_locations, public.inventory_items TO authenticated;
-GRANT SELECT, INSERT ON public.inventory_events TO authenticated;
+  public.storage_locations TO authenticated;
+GRANT SELECT ON public.inventory_items TO authenticated;
+GRANT INSERT (household_id, product_id, location_id, unit, low_stock_threshold, reminder_ignored)
+  ON public.inventory_items TO authenticated;
+GRANT UPDATE (product_id, location_id, unit, low_stock_threshold, reminder_ignored)
+  ON public.inventory_items TO authenticated;
+GRANT SELECT ON public.inventory_events TO authenticated;
 
 REVOKE ALL ON FUNCTION public.current_household_id() FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.is_household_creator(uuid) FROM PUBLIC;
@@ -283,11 +289,12 @@ CREATE OR REPLACE FUNCTION public.apply_inventory_action(
 )
 RETURNS public.inventory_items
 LANGUAGE plpgsql
-SECURITY INVOKER
+SECURITY DEFINER
 SET search_path = pg_catalog
 AS $$
 DECLARE
   v_item public.inventory_items;
+  v_household_id uuid;
   v_before integer;
   v_after integer;
 BEGIN
@@ -311,9 +318,17 @@ BEGIN
       USING ERRCODE = '28000';
   END IF;
 
+  v_household_id := public.current_household_id();
+
+  IF v_household_id IS NULL THEN
+    RAISE EXCEPTION 'household membership is required'
+      USING ERRCODE = '28000';
+  END IF;
+
   SELECT * INTO v_item
   FROM public.inventory_items
   WHERE id = p_item_id
+    AND household_id = v_household_id
   FOR UPDATE;
 
   IF NOT FOUND THEN
@@ -360,4 +375,5 @@ END;
 $$;
 
 REVOKE ALL ON FUNCTION public.apply_inventory_action(uuid, text, integer, text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.apply_inventory_action(uuid, text, integer, text) FROM anon, service_role, postgres;
 GRANT EXECUTE ON FUNCTION public.apply_inventory_action(uuid, text, integer, text) TO authenticated;
