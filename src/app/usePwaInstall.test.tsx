@@ -1,5 +1,5 @@
 import { act, renderHook } from '@testing-library/react'
-import { afterEach, expect, it, vi } from 'vitest'
+import { expect, it, vi } from 'vitest'
 import { usePwaInstall } from './usePwaInstall'
 
 type InstallEvent = Event & {
@@ -13,8 +13,6 @@ function installEvent() {
   event.userChoice = Promise.resolve({ outcome: 'accepted' })
   return event
 }
-
-afterEach(() => window.dispatchEvent(new Event('appinstalled')))
 
 it('retains a deferred browser prompt and clears it after installing', async () => {
   const { result } = renderHook(() => usePwaInstall())
