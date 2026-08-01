@@ -211,4 +211,3 @@ git add src/features/inventory/InventoryEntryPage.tsx src/features/inventory/Inv
 git commit -m "fix: simplify scan entry navigation"
 git push origin master
 ```
-
