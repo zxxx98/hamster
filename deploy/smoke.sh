@@ -15,21 +15,24 @@ cleanup() {
 }
 trap 'exit_code=$?; trap - EXIT; cleanup; exit "$exit_code"' EXIT
 
-APP_ORIGIN="$app_origin" \
-APP_PORT="$app_port" \
-HAMSTER_RUNTIME_DIR="$runtime_dir" \
-COMPOSE_PROJECT_NAME="$project_name" \
-"$deploy_dir/bootstrap.sh" >/dev/null
+first_bootstrap_output=$(APP_ORIGIN="$app_origin" \
+  APP_PORT="$app_port" \
+  HAMSTER_RUNTIME_DIR="$runtime_dir" \
+  COMPOSE_PROJECT_NAME="$project_name" \
+  "$deploy_dir/bootstrap.sh")
 
 [ "$(stat -c %a "$runtime_dir/.env")" = 600 ]
+initial_setup_secret=$(sed -n 's/^INITIAL_SETUP_SECRET=//p' "$runtime_dir/.env")
+[ "$(printf '%s\n' "$first_bootstrap_output" | grep -Fxc "Initial setup secret: $initial_setup_secret")" = 1 ]
 
-APP_ORIGIN="$app_origin" \
-APP_PORT="$app_port" \
-HAMSTER_RUNTIME_DIR="$runtime_dir" \
-COMPOSE_PROJECT_NAME="$project_name" \
-"$deploy_dir/bootstrap.sh" >/dev/null
+second_bootstrap_output=$(APP_ORIGIN="$app_origin" \
+  APP_PORT="$app_port" \
+  HAMSTER_RUNTIME_DIR="$runtime_dir" \
+  COMPOSE_PROJECT_NAME="$project_name" \
+  "$deploy_dir/bootstrap.sh")
 
 [ "$(stat -c %a "$runtime_dir/.env")" = 600 ]
+! printf '%s\n' "$second_bootstrap_output" | grep -q '^Initial setup secret:'
 anon_key=$(sed -n 's/^ANON_KEY=//p' "$runtime_dir/.env")
 curl --retry 30 --retry-all-errors --retry-delay 1 --fail --silent --show-error \
   -H "apikey: $anon_key" \

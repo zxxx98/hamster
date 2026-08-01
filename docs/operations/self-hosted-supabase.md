@@ -22,9 +22,15 @@ APP_ORIGIN=https://hamster.example.com ./deploy/bootstrap.sh
 APP_ORIGIN=https://hamster.example.com APP_PORT=24100 ./deploy/bootstrap.sh
 ```
 
-脚本在首次运行时用 Node Docker 镜像生成所有密钥，写入 `deploy/runtime/.env`（权限 `0600`），再等待数据库与 Kong、按文件名顺序应用尚未记录的 `supabase/migrations/*.sql`，并更新 Edge Functions。它不会打印任何密钥。
+脚本在首次运行时用 Node Docker 镜像生成所有密钥，写入 `deploy/runtime/.env`（权限 `0600`），再等待数据库与 Kong、按文件名顺序应用尚未记录的 `supabase/migrations/*.sql`，并更新 Edge Functions。所有步骤成功后，它会仅一次打印 `INITIAL_SETUP_SECRET`；请将终端和 CI 日志视为敏感信息。后续重复运行不会再次打印该密钥。
 
-首次部署完成时，未登录访问会自动进入 `/setup`。管理员仅在 HTTPS 页面上从受保护的环境文件读取 `INITIAL_SETUP_SECRET` 并填写一次。成功创建家庭后，数据库的单家庭约束会锁定初始化；之后未登录用户进入 `/login`，重复运行 bootstrap 不会清空数据或重新允许 setup。
+首次部署完成时，未登录访问会自动进入 `/setup`。管理员仅在 HTTPS 页面上填写首次部署输出的 `INITIAL_SETUP_SECRET` 一次。若没有保留首次输出，可从受保护的环境文件读取：
+
+```bash
+sudo sed -n 's/^INITIAL_SETUP_SECRET=//p' deploy/runtime/.env
+```
+
+成功创建家庭后，数据库的单家庭约束会锁定初始化；之后未登录用户进入 `/login`，重复运行 bootstrap 不会清空数据或重新允许 setup。
 
 ## 反向代理与公网访问
 

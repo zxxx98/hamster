@@ -61,6 +61,8 @@ install_functions() {
 
 install -d -m 700 "$runtime_dir"
 
+created_environment=false
+
 if [ ! -e "$environment_file" ]; then
   temporary_environment=$(mktemp "$runtime_dir/.env.XXXXXX")
   if ! APP_ORIGIN="${APP_ORIGIN:-http://localhost:24000}" \
@@ -76,6 +78,7 @@ if [ ! -e "$environment_file" ]; then
   fi
   chmod 600 "$temporary_environment"
   mv "$temporary_environment" "$environment_file"
+  created_environment=true
 fi
 
 compose up -d --pull always
@@ -88,3 +91,9 @@ wait_for_service functions
 app_origin=$(sed -n 's/^APP_ORIGIN=//p' "$environment_file")
 printf 'Hamster is ready at %s\n' "$app_origin"
 printf 'Deployment environment is stored at %s\n' "$environment_file"
+
+if [ "$created_environment" = true ]; then
+  initial_setup_secret=$(sed -n 's/^INITIAL_SETUP_SECRET=//p' "$environment_file")
+  printf 'Initial setup secret: %s\n' "$initial_setup_secret"
+  printf 'Enter it only on the HTTPS /setup page; treat this terminal output as sensitive.\n'
+fi
