@@ -87,7 +87,7 @@ export function createDeploymentEnvironment({
     SECRET_KEY_BASE: randomBase64Url(randomBytes, 64),
     VAULT_ENC_KEY: randomHex(randomBytes, 16),
     PG_META_CRYPTO_KEY: randomBase64Url(randomBytes),
-    REALTIME_DB_ENC_KEY: randomBase64Url(randomBytes),
+    REALTIME_DB_ENC_KEY: randomBase64Url(randomBytes, 12),
     POOLER_TENANT_ID: '1000',
     POOLER_DEFAULT_POOL_SIZE: '20',
     POOLER_MAX_CLIENT_CONN: '100',

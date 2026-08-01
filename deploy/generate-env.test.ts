@@ -8,6 +8,7 @@ it('creates distinct anon and service JWTs', () => {
   expect(env.ANON_KEY).not.toBe(env.SERVICE_ROLE_KEY)
   expect(env.ANON_KEY.split('.')).toHaveLength(3)
   expect(env.INITIAL_SETUP_SECRET).toHaveLength(64)
+  expect(env.REALTIME_DB_ENC_KEY).toHaveLength(16)
 })
 
 it('derives public URLs from the app origin', () => {
