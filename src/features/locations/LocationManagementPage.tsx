@@ -1,5 +1,4 @@
 import { FormEvent, useCallback, useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { uploadLocationPhoto } from './api'
 
 type Room = { id: string; name: string }
@@ -131,7 +130,7 @@ export function LocationManagementPage() {
   }
 
   return <main>
-    <header><Link to="/">返回库存</Link><h1>位置</h1><p>用房间和存放点记录物品放在哪里。</p></header>
+    <header><h1>位置</h1><p>用房间和存放点记录物品放在哪里。</p></header>
     {message ? <p role="alert">{message}</p> : null}
     <section aria-labelledby="rooms-heading">
       <h2 id="rooms-heading">房间</h2>
