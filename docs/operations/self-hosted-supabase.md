@@ -6,7 +6,7 @@
 - 至少 4 GB 可用内存，并为 Docker named volumes 准备持久化磁盘。
 - 生产环境有一个外部 HTTPS 反向代理；Compose 不申请或管理 TLS 证书。
 
-应用会打包固定版本的 Supabase 服务。数据库、Storage、Studio、Kong 与 Supavisor 仅运行在 Docker 内部网络；只有 Web 容器的 80 端口映射到宿主机 `APP_PORT`（默认 `24000`）。Web 容器将 Supabase 路由反代到内部 Kong，因此浏览器无需知道数据库连接串或第二个 Supabase 域名。
+应用会打包固定版本的 Supabase 服务。数据库、Storage、Studio、Kong 与 Supavisor 仅运行在 Docker 内部网络；只有 Web 容器的 80 端口映射到宿主机 `APP_PORT`（默认 `24000`）。Web 容器从 `ghcr.io/zxxx98/hamster:latest` 拉取，并将 Supabase 路由反代到内部 Kong，因此浏览器无需知道数据库连接串或第二个 Supabase 域名。
 
 ## 首次部署
 
@@ -40,7 +40,7 @@ APP_ORIGIN=https://hamster.example.com APP_PORT=24100 ./deploy/bootstrap.sh
 ./deploy/bootstrap.sh
 ```
 
-该操作复用 `deploy/runtime/.env`、保留 Docker volumes、只应用 migration 账本中不存在的文件，并重建 Functions 服务。日常检查命令：
+该操作复用 `deploy/runtime/.env`、保留 Docker volumes、总是拉取最新 Web 镜像、只应用 migration 账本中不存在的文件，并重建 Functions 服务。若要固定回滚版本，可在运行前设置 `HAMSTER_WEB_IMAGE=ghcr.io/zxxx98/hamster@sha256:<image-digest>`。日常检查命令：
 
 ```bash
 docker compose --env-file deploy/runtime/.env -f deploy/compose.yml ps

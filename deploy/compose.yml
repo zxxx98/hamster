@@ -5,7 +5,8 @@ include:
 
 services:
   web:
-    build: ..
+    image: ${HAMSTER_WEB_IMAGE:-ghcr.io/zxxx98/hamster:latest}
+    pull_policy: always
     restart: unless-stopped
     depends_on:
       kong:

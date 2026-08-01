@@ -78,7 +78,7 @@ if [ ! -e "$environment_file" ]; then
   mv "$temporary_environment" "$environment_file"
 fi
 
-compose up -d --build
+compose up -d --pull always
 wait_for_service db
 wait_for_service kong
 install_migrations
