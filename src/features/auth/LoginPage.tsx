@@ -1,5 +1,5 @@
 import { FormEvent, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { signIn } from './api'
 
 type LoginPageProps = {
@@ -71,6 +71,7 @@ export function LoginPage({ onSession }: LoginPageProps) {
         <button type="submit" disabled={isSubmitting}>
           {isSubmitting ? '正在登录…' : '登录'}
         </button>
+        <p className="setup-login-link"><Link to="/setup">首次使用？创建家庭</Link></p>
       </form>
     </main>
   )

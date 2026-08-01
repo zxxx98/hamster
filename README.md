@@ -4,26 +4,15 @@
 
 ## 当前部署
 
-- Web：`http://158.178.243.20:24000`
+- Web：`https://hamster.980204.xyz`
 - Supabase API：`https://supabase.980204.xyz`
 - 静态站点由 `hamster-web` Docker 容器提供；SPA 深链接会回退至 `index.html`。
 
 ## 首次创建家庭
 
-在服务器执行以下命令，将 `CREATOR_USERNAME` 与 `CREATOR_TOKEN` 替换为最终值。账号为 3–32 位小写字母、数字、下划线或连字符；Token 至少 16 位。
+打开 `https://hamster.980204.xyz/setup`，输入家庭名称、创建者账号、创建者 Token 与服务器管理员从受保护的 `/opt/supabase/.env.initial-setup` 文件取得的一次性初始化密钥。账号为 3–32 位小写字母、数字、下划线或连字符；Token 至少 16 位。
 
-```bash
-read -rsp '初始化密钥: ' setup_secret; echo
-read -rp '创建者账号: ' creator_username
-read -rsp '创建者 Token: ' creator_token; echo
-anon_key=$(sudo sed -n 's/^ANON_KEY=//p' /opt/supabase/.env)
-curl --fail --silent --show-error \
-  -H "apikey: $anon_key" \
-  -H "Content-Type: application/json" \
-  -H "x-initial-setup-secret: $setup_secret" \
-  -d "{\"username\":\"$creator_username\",\"token\":\"$creator_token\",\"householdName\":\"我的家庭\"}" \
-  http://127.0.0.1:23020/functions/v1/bootstrap-household
-```
+请只通过 HTTPS 页面提交 Token 与初始化密钥；不要把它们放入命令历史、URL、聊天记录或浏览器存储。创建成功后，页面会自动登录并进入库存首页。
 
 成功后立即删除 `/opt/supabase/.env.initial-setup`，然后执行：
 

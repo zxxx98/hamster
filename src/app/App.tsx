@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { LoginPage } from '../features/auth/LoginPage'
+import { InitialSetupPage } from '../features/auth/InitialSetupPage'
 import { restoreSession } from '../features/auth/api'
 import { InventoryListPage } from '../features/inventory/InventoryListPage'
 import { InventoryEntryPage } from '../features/inventory/InventoryEntryPage'
@@ -51,6 +52,7 @@ export function App() {
         <AppNavigation />
         <div className="app-content"><Routes>
           <Route path="/login" element={<Navigate to="/" replace />} />
+          <Route path="/setup" element={<Navigate to="/" replace />} />
           <Route path="/" element={<InventoryListPage />} />
           <Route path="/inventory/new" element={<InventoryEntryPage />} />
           <Route path="/inventory/:id" element={<InventoryDetailPage />} />
@@ -60,6 +62,7 @@ export function App() {
         </Routes></div>
       </div> : <Routes>
         <Route path="/login" element={<LoginPage onSession={() => setIsAuthenticated(true)} />} />
+        <Route path="/setup" element={<InitialSetupPage onSession={() => setIsAuthenticated(true)} />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>}
     </BrowserRouter>

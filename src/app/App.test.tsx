@@ -33,6 +33,14 @@ describe('App routes', () => {
     expect(await screen.findByRole('heading', { name: '登录家庭库存' })).toBeInTheDocument()
   })
 
+  it('renders the public initial setup page at /setup', async () => {
+    window.history.pushState({}, '', '/setup')
+
+    render(<App />)
+
+    expect(await screen.findByRole('heading', { name: '创建家庭库存' })).toBeInTheDocument()
+  })
+
   it('redirects unknown unauthenticated routes to login', async () => {
     window.history.pushState({}, '', '/unavailable')
 
