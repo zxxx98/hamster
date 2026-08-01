@@ -2,29 +2,36 @@
 
 家庭共享消耗品库存 PWA：扫码或手动录入商品，记录房间和存放点，按需补货并在低库存时提醒。
 
-## 当前部署
+## Docker 部署
 
-- Web：`https://hamster.980204.xyz`
-- Supabase API：`https://supabase.980204.xyz`
-- 静态站点由 `hamster-web` Docker 容器提供；SPA 深链接会回退至 `index.html`。
+在全新的 Linux 主机上，只需 Docker Engine、Docker Compose v2.20+、至少 4 GB 内存和持久化磁盘；不需要预先安装 Supabase、Node、创建数据表或部署 Functions。
+
+```bash
+git clone <仓库地址> hamster
+cd hamster
+APP_ORIGIN=https://hamster.example.com ./deploy/bootstrap.sh
+```
+
+首次运行会生成服务端密钥、启动私有 Supabase、应用所有 `supabase/migrations`、部署 Edge Functions，并将运行配置写入权限为 `0600` 的 `deploy/runtime/.env`。唯一暴露的端口是 Web 服务（默认 `24000`）；浏览器通过同一域名访问 `/auth/v1`、`/rest/v1` 和 `/functions/v1`，数据库、Studio 与 Supavisor 不会发布到宿主机。
+
+若先用公网 IP 做 HTTP 验证，可使用 `APP_ORIGIN=http://PUBLIC_IP:24000 ./deploy/bootstrap.sh`。正式公开前，应由 Caddy、Nginx、Traefik 或云负载均衡器在 Web 服务前提供 HTTPS 和 WebSocket 转发；不要在 HTTP 页面提交初始化密钥或用户 Token。更多运行与反代说明见 [自托管部署说明](docs/operations/self-hosted-supabase.md)。
 
 ## 首次创建家庭
 
-全新部署且尚未创建家庭时，应用会自动打开 `/setup`。输入家庭名称、创建者账号、创建者 Token 与服务器管理员从受保护的 `/opt/supabase/.env.initial-setup` 文件取得的一次性初始化密钥。账号为 3–32 位小写字母、数字、下划线或连字符；Token 至少 16 位。
+全新部署且尚未创建家庭时，应用会自动打开 `/setup`。输入家庭名称、创建者账号、创建者 Token 与服务器管理员从受保护的 `deploy/runtime/.env` 取得的 `INITIAL_SETUP_SECRET`。账号为 3–32 位小写字母、数字、下划线或连字符；Token 至少 16 位。
 
 请只通过 HTTPS 页面提交 Token 与初始化密钥；不要把它们放入命令历史、URL、聊天记录或浏览器存储。创建成功后，页面会自动登录并进入库存首页。数据库的单家庭约束会自动禁用后续初始化：新的未登录访问会到 `/login`，`/setup` 也会重定向至登录页，无需删除密钥文件或重建 Functions 服务。
 
-在另一台新机器部署时，仍须在将网站公开前通过受保护的服务器环境配置 `INITIAL_SETUP_SECRET`；首次创建成功后不需要额外的人工收尾操作。
+首次创建成功后不需要额外的人工收尾操作。后续重跑 `./deploy/bootstrap.sh` 会复用现有密钥和数据，只应用尚未记录的 migration 并更新 Functions；它不会重置家庭数据或重新开放初始化。
 
-## 更新前端
+## 更新应用
 
 ```bash
-cd /home/ubuntu/code/personal/hamster
-npm run build
-sudo docker restart hamster-web
+cd hamster
+./deploy/bootstrap.sh
 ```
 
-构建时 `.env.local` 仅包含公开的 Supabase URL 与匿名公钥；服务角色密钥、Free API 凭据及初始化密钥均只存在服务器受保护环境文件中。
+构建时 `.env.local` 仅包含公开的 Supabase URL 与匿名公钥；服务角色密钥、Free API 凭据及初始化密钥均只存在服务器受保护环境文件中，绝不能提交到仓库。
 
 ## 手动验收清单
 

@@ -92,7 +92,7 @@ cp /opt/supabase/volumes/functions/main/index.ts deploy/supabase/volumes/functio
 
 - [ ] **Step 2: Make the vendored services portable and private.**
 
-Remove container names and all published Kong, Studio, and Supavisor ports. Replace machine paths for database and Storage with named volumes. Preserve the service health checks, private Kong endpoint, image pins, and all necessary service dependencies.
+Remove fixed container names and all published Kong, Studio, and Supavisor ports. Preserve Realtime's required `realtime-dev.supabase-realtime` Docker network alias (rather than a global container name). Replace machine paths for database and Storage with named volumes. Preserve the service health checks, private Kong endpoint, image pins, and all necessary service dependencies.
 
 The Functions service reads INITIAL_SETUP_SECRET and optional Free API values from the generated deployment environment. It no longer references separate host environment files. Public Supabase, Auth callback, site, and redirect URLs are all derived from APP_ORIGIN.
 
@@ -231,4 +231,3 @@ Expected: tests/build/image pass, smoke reports empty setup through same-origin 
 git add README.md docs/operations/self-hosted-supabase.md
 git commit -m "docs: add self-hosted docker deployment"
 ~~~
-
