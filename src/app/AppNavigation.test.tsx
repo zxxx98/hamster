@@ -17,4 +17,10 @@ it('keeps scan entry separate from the three mobile tab destinations', () => {
 
   expect(within(destinations as HTMLElement).queryByRole('link', { name: '扫码入库' })).not.toBeInTheDocument()
   expect(within(navigation).getByRole('link', { name: '扫码入库' })).toBeInTheDocument()
+
+  for (const name of ['库存', '位置', '成员', '扫码入库']) {
+    expect(within(navigation).getByRole('link', { name })).toHaveAttribute('aria-label', name)
+  }
+
+  expect(navigation.querySelectorAll('svg[aria-hidden="true"]')).toHaveLength(4)
 })

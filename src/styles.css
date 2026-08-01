@@ -145,6 +145,14 @@ section button {
 
 .app-nav-links { display: flex; flex: 1; flex-direction: column; gap: 6px; }
 
+.app-nav-links a, .app-scan-link {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.app-navigation svg { flex: 0 0 auto; width: 20px; height: 20px; }
+
 .app-nav-links a {
   border-radius: 8px;
   color: #798078;
@@ -195,7 +203,7 @@ section button {
 
 .low-stock-filter input { width: auto; }
 
-@media (max-width: 760px) {
+@media (max-width: 1024px), (hover: none) and (pointer: coarse) {
   .app-shell { display: block; }
 
   .app-navigation {
@@ -217,16 +225,26 @@ section button {
 
   .app-brand { display: none; }
   .app-nav-links { display: grid; flex: 1; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; }
-  .app-nav-links a { padding: 8px 4px; font-size: 13px; text-align: center; }
+  .app-nav-links a { display: grid; min-height: 48px; place-items: center; padding: 8px; }
+  .app-nav-links a span, .app-scan-link span { display: none; }
+  .app-nav-links svg { width: 24px; height: 24px; }
 
   .app-scan-link {
+    display: grid;
+    width: 52px;
+    height: 52px;
+    place-items: center;
+    padding: 0;
     position: fixed;
     z-index: 6;
     right: 20px;
     bottom: calc(80px + env(safe-area-inset-bottom));
     margin: 0;
+    border-radius: 50%;
     box-shadow: 0 8px 18px rgba(40, 51, 45, .18);
   }
+
+  .app-scan-link svg { width: 26px; height: 26px; }
 
   .inventory-scan-link { display: none; }
 
