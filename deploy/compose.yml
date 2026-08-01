@@ -1,0 +1,17 @@
+name: hamster
+
+include:
+  - path: ./supabase/compose.yml
+
+services:
+  web:
+    build: ..
+    restart: unless-stopped
+    depends_on:
+      kong:
+        condition: service_healthy
+    environment:
+      PUBLIC_SUPABASE_URL: ${APP_ORIGIN}
+      PUBLIC_SUPABASE_ANON_KEY: ${ANON_KEY}
+    ports:
+      - "${APP_PORT}:80"
