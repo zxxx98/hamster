@@ -216,22 +216,22 @@ section button {
   }
 
   .app-brand { display: none; }
-  .app-nav-links { display: grid; flex: 1; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; }
-  .app-nav-links a, .app-scan-link { padding: 8px 4px; font-size: 12px; text-align: center; }
+  .app-nav-links { display: grid; flex: 1; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; }
+  .app-nav-links a { padding: 8px 4px; font-size: 13px; text-align: center; }
 
   .app-scan-link {
-    position: static;
+    position: fixed;
+    z-index: 6;
+    right: 20px;
+    bottom: calc(80px + env(safe-area-inset-bottom));
     margin: 0;
-    box-shadow: none;
-    background: transparent;
-    color: #798078;
+    box-shadow: 0 8px 18px rgba(40, 51, 45, .18);
   }
 
-  .app-scan-link[aria-current="page"] { background: #E5ECE3; color: #28332D; }
   .inventory-scan-link { display: none; }
 
   main { padding: 28px 20px 110px; }
-  .app-content main { padding-bottom: calc(88px + env(safe-area-inset-bottom)); }
+  .app-content main { padding-bottom: calc(172px + env(safe-area-inset-bottom)); }
   h1 { font-size: 30px; }
   header { display: grid; gap: 10px; }
   header a { width: max-content; }
