@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { PwaInstallNotice } from '../../app/PwaInstallNotice'
 import { LowStockPanel } from '../reminders/LowStockPanel'
 import { filterInventory, type InventoryFilters } from './filters'
 
@@ -17,7 +18,12 @@ type Location = { id: string; room_id: string; name: string }
 
 const emptyFilters: InventoryFilters = { roomId: '', locationId: '', category: '', lowStockOnly: false }
 
-export function InventoryListPage() {
+type InventoryListPageProps = {
+  canInstall?: boolean
+  onInstall?: () => void | Promise<void>
+}
+
+export function InventoryListPage({ canInstall = false, onInstall }: InventoryListPageProps) {
   const [items, setItems] = useState<InventoryRow[]>([])
   const [rooms, setRooms] = useState<Room[]>([])
   const [locations, setLocations] = useState<Location[]>([])
@@ -79,7 +85,8 @@ export function InventoryListPage() {
   }
 
   return <main>
-    <header><p>家藏</p><h1>家庭库存</h1><Link to="/inventory/new">扫码入库</Link></header>
+    <header><p>家藏</p><h1>家庭库存</h1><Link className="inventory-scan-link" to="/inventory/new">扫码入库</Link></header>
+    {canInstall && onInstall ? <PwaInstallNotice onInstall={onInstall} /> : null}
     <LowStockPanel />
     <form className="inventory-filters" aria-label="库存筛选" onSubmit={(event) => event.preventDefault()}>
       <label>房间<select value={filters.roomId} onChange={(event) => selectRoom(event.target.value)}><option value="">全部房间</option>{rooms.map((room) => <option key={room.id} value={room.id}>{room.name}</option>)}</select></label>

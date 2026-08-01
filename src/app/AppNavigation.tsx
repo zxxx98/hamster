@@ -7,7 +7,7 @@ export function AppNavigation() {
       <NavLink end to="/">库存</NavLink>
       <NavLink to="/locations">位置</NavLink>
       <NavLink to="/members">成员</NavLink>
+      <NavLink className="app-scan-link" to="/inventory/new">扫码入库</NavLink>
     </div>
-    <Link className="app-scan-link" to="/inventory/new">扫码入库</Link>
   </nav>
 }

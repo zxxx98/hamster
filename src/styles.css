@@ -143,7 +143,7 @@ section button {
   letter-spacing: .08em;
 }
 
-.app-nav-links { display: grid; gap: 6px; }
+.app-nav-links { display: flex; flex: 1; flex-direction: column; gap: 6px; }
 
 .app-nav-links a {
   border-radius: 8px;
@@ -159,6 +159,20 @@ section button {
 
 .app-scan-link { margin-top: auto; text-align: center; }
 .app-content { min-width: 0; }
+
+.pwa-install-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: -10px 0 24px;
+  border-left: 4px solid #5E7966;
+  background: #E5ECE3;
+  padding: 12px;
+}
+
+.pwa-install-notice button { flex: 0 0 auto; }
 
 .inventory-filters {
   display: grid;
@@ -191,29 +205,33 @@ section button {
     bottom: 0;
     left: 0;
     display: flex;
-    height: 68px;
+    height: calc(64px + env(safe-area-inset-bottom));
     flex-direction: row;
     align-items: center;
     gap: 0;
     border-top: 1px solid #DFDDD5;
     border-right: 0;
     background: #FFFDFA;
-    padding: 8px 16px;
+    padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
   }
 
   .app-brand { display: none; }
-  .app-nav-links { display: flex; flex: 1; justify-content: space-around; }
-  .app-nav-links a { padding: 8px; font-size: 13px; }
+  .app-nav-links { display: grid; flex: 1; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; }
+  .app-nav-links a, .app-scan-link { padding: 8px 4px; font-size: 12px; text-align: center; }
 
   .app-scan-link {
-    position: absolute;
-    right: 20px;
-    bottom: 56px;
+    position: static;
     margin: 0;
-    box-shadow: 0 8px 18px rgba(40, 51, 45, .18);
+    box-shadow: none;
+    background: transparent;
+    color: #798078;
   }
 
+  .app-scan-link[aria-current="page"] { background: #E5ECE3; color: #28332D; }
+  .inventory-scan-link { display: none; }
+
   main { padding: 28px 20px 110px; }
+  .app-content main { padding-bottom: calc(88px + env(safe-area-inset-bottom)); }
   h1 { font-size: 30px; }
   header { display: grid; gap: 10px; }
   header a { width: max-content; }

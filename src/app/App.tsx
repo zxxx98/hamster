@@ -11,8 +11,10 @@ import { MemberManagementPage } from '../features/auth/MemberManagementPage'
 import { LocationManagementPage } from '../features/locations/LocationManagementPage'
 import { useHouseholdRealtime } from '../features/sync/useHouseholdRealtime'
 import { AppNavigation } from './AppNavigation'
+import { usePwaInstall } from './usePwaInstall'
 
 export function App() {
+  const { canInstall, install } = usePwaInstall()
   const [loadAttempt, setLoadAttempt] = useState(0)
   const [isRestoring, setIsRestoring] = useState(true)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -78,7 +80,7 @@ export function App() {
         <div className="app-content"><Routes>
           <Route path="/login" element={<Navigate to="/" replace />} />
           <Route path="/setup" element={<Navigate to="/" replace />} />
-          <Route path="/" element={<InventoryListPage />} />
+          <Route path="/" element={<InventoryListPage canInstall={canInstall} onInstall={install} />} />
           <Route path="/inventory/new" element={<InventoryEntryPage />} />
           <Route path="/inventory/:id" element={<InventoryDetailPage />} />
           <Route path="/locations" element={<LocationManagementPage />} />
