@@ -17,7 +17,7 @@ The root `deploy/compose.yml` Web service will pull `ghcr.io/zxxx98/hamster:late
 ## Cutover sequence
 
 1. Confirm the GHCR image can be pulled before interrupting the old service.
-2. Preserve the old bind-mounted Supabase data directory under a timestamped rollback path; do not delete it during the live cutover.
+2. Leave the old bind-mounted Supabase data directory in place as a rollback target; do not delete it during the live cutover.
 3. Stop the old `/opt/supabase` Compose project and remove only the `hamster-web` container, releasing port 24000.
 4. Run `APP_ORIGIN=https://hamster.980204.xyz APP_PORT=24000 ./deploy/bootstrap.sh` from this repository. The new stack creates credentials, empty named volumes, schema, and Functions.
 5. Verify the new Compose services, the public same-origin Auth health route, and `initial-setup-status` returning `setupRequired: true`.
@@ -25,7 +25,7 @@ The root `deploy/compose.yml` Web service will pull `ghcr.io/zxxx98/hamster:late
 
 ## Failure handling
 
-If the GHCR pull, bootstrap, or public verification fails, stop the new Compose project, restore the old data directory if it was moved, restart `/opt/supabase`, and recreate the former `hamster-web` container using its inspected bind mounts. No old data is deleted before the new public endpoint passes verification.
+If the GHCR pull, bootstrap, or public verification fails, stop the new Compose project, restart `/opt/supabase`, and recreate the former `hamster-web` container using its inspected bind mounts. No old data is deleted before the new public endpoint passes verification.
 
 ## Security and data boundaries
 
