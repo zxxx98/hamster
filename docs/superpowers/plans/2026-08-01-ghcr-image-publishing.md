@@ -75,11 +75,12 @@ The workflow deliberately has no `pull_request`, tag, manual-dispatch, SHA-tag, 
 Run:
 
 ```bash
-npx --yes actionlint .github/workflows/docker-image.yml
+sudo docker run --rm -v "$PWD:/work:ro" -w /work \
+  rhysd/actionlint:1.7.7 .github/workflows/docker-image.yml
 sudo docker build -t hamster-web:ci-check .
 ```
 
-Expected: `actionlint` exits `0`, and Docker builds the same root image that the workflow will publish.
+Expected: the actionlint container exits `0`, and Docker builds the same root image that the workflow will publish.
 
 - [ ] **Step 4: Commit the workflow.**
 
