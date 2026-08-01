@@ -824,22 +824,11 @@ The panel replaces the command-line bootstrap request. It does **not** remove th
 
   Do not place any of these values in chat, git, screenshots, a URL, browser storage, or logs. The successful panel response signs the creator in and redirects to `/`.
 
-- [ ] **Step 4: Remove the bootstrap capability immediately after visual setup succeeds.**
+- [ ] **Step 4: Verify initialization is automatically disabled after visual setup succeeds.**
 
-  Once the panel reports success, immediately run:
+  In a fresh private browser session, open `https://<pwa-hostname>/setup` after the first household has been created.
 
-  ```bash
-  sudo rm /opt/supabase/.env.initial-setup
-  cd /opt/supabase
-  sudo docker compose --env-file .env up -d functions
-  curl --silent --show-error -o /dev/null -w '%{http_code}\n' \
-    -H "apikey: $(sudo sed -n 's/^ANON_KEY=//p' /opt/supabase/.env)" \
-    -H 'Content-Type: application/json' \
-    -d '{"username":"not-used","token":"not-used"}' \
-    http://127.0.0.1:23020/functions/v1/bootstrap-household
-  ```
-
-  Expected: the final probe returns `503` because the setup secret no longer exists. Never include the actual setup secret in a command transcript.
+  Expected: the page redirects to `/login`. The backend’s singleton household boundary rejects any direct second bootstrap request with `409`; no secret deletion or Functions recreation is required. Never include the actual setup secret in a command transcript.
 
 - [ ] **Step 5: Perform authenticated MVP acceptance with two browser sessions.**
 
@@ -853,7 +842,7 @@ The panel replaces the command-line bootstrap request. It does **not** remove th
   6. set inventory at or below threshold, reload, ignore it, restore it in detail, and restock above threshold; verify the reminder state transitions correctly;
   7. create a member, login in session B, and verify the session-B list/detail/reminder pages refresh after session-A stock and location updates.
 
-  In a browser DevTools network view, verify no Free API credential or service-role key appears in client requests. The initialization secret is visible only in the single, owner-initiated `/setup` request because it was typed into the form; after Step 4, confirm no later request contains it. A product or location photo URL may be signed and time-limited; it must not be a public bucket URL.
+  In a browser DevTools network view, verify no Free API credential or service-role key appears in client requests. The initialization secret is visible only in the single, owner-initiated `/setup` request because it was typed into the form. A product or location photo URL may be signed and time-limited; it must not be a public bucket URL.
 
 - [ ] **Step 6: Complete real-device checks and documentation.**
 
@@ -868,4 +857,4 @@ The panel replaces the command-line bootstrap request. It does **not** remove th
   git commit -m "docs: update MVP acceptance guide"
   ```
 
-  Final handoff must list commit hashes, exact automated verification results, deployed URL, remaining manual device checks (if any), and the fact that initial setup capability was removed. Do not call the MVP complete before Step 5 succeeds; do not say real-device checks passed without observing them.
+  Final handoff must list commit hashes, exact automated verification results, deployed URL, remaining manual device checks (if any), and the fact that the database singleton automatically disables further initial setup. Do not call the MVP complete before Step 5 succeeds; do not say real-device checks passed without observing them.

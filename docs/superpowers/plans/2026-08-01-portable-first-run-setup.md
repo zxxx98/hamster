@@ -120,7 +120,7 @@ Run:
 
 ```bash
 npm test -- src/features/auth/setupStatus.test.ts
-sudo docker exec supabase-edge-functions edge-runtime bundle /home/deno/functions/initial-setup-status/index.ts --output /tmp/initial-setup-status.js
+sudo docker exec supabase-edge-functions edge-runtime bundle --entrypoint /home/deno/functions/initial-setup-status/index.ts --output /tmp/initial-setup-status.eszip
 git add src/features/auth/setupStatus.ts src/features/auth/setupStatus.test.ts supabase/functions/initial-setup-status/index.ts
 git commit -m "feat: report initial setup status"
 ```
@@ -257,7 +257,7 @@ Run:
 
 ```bash
 sudo install -D -m 0644 supabase/functions/initial-setup-status/index.ts /opt/supabase/volumes/functions/initial-setup-status/index.ts
-sudo docker exec supabase-edge-functions edge-runtime bundle /home/deno/functions/initial-setup-status/index.ts --output /tmp/initial-setup-status.js
+sudo docker exec supabase-edge-functions edge-runtime bundle --entrypoint /home/deno/functions/initial-setup-status/index.ts --output /tmp/initial-setup-status.eszip
 sudo docker compose -f /opt/supabase/docker-compose.yml --env-file /opt/supabase/.env up -d functions
 ```
 

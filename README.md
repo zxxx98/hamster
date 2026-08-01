@@ -10,18 +10,11 @@
 
 ## 首次创建家庭
 
-打开 `https://hamster.980204.xyz/setup`，输入家庭名称、创建者账号、创建者 Token 与服务器管理员从受保护的 `/opt/supabase/.env.initial-setup` 文件取得的一次性初始化密钥。账号为 3–32 位小写字母、数字、下划线或连字符；Token 至少 16 位。
+全新部署且尚未创建家庭时，应用会自动打开 `/setup`。输入家庭名称、创建者账号、创建者 Token 与服务器管理员从受保护的 `/opt/supabase/.env.initial-setup` 文件取得的一次性初始化密钥。账号为 3–32 位小写字母、数字、下划线或连字符；Token 至少 16 位。
 
-请只通过 HTTPS 页面提交 Token 与初始化密钥；不要把它们放入命令历史、URL、聊天记录或浏览器存储。创建成功后，页面会自动登录并进入库存首页。
+请只通过 HTTPS 页面提交 Token 与初始化密钥；不要把它们放入命令历史、URL、聊天记录或浏览器存储。创建成功后，页面会自动登录并进入库存首页。数据库的单家庭约束会自动禁用后续初始化：新的未登录访问会到 `/login`，`/setup` 也会重定向至登录页，无需删除密钥文件或重建 Functions 服务。
 
-成功后立即删除 `/opt/supabase/.env.initial-setup`，然后执行：
-
-```bash
-cd /opt/supabase
-sudo docker compose --env-file .env up -d functions
-```
-
-函数会从数据库层拒绝第二个家庭，但删除初始化密钥仍是必须的安全步骤。
+在另一台新机器部署时，仍须在将网站公开前通过受保护的服务器环境配置 `INITIAL_SETUP_SECRET`；首次创建成功后不需要额外的人工收尾操作。
 
 ## 更新前端
 
