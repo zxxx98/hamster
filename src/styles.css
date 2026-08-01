@@ -203,7 +203,7 @@ section button {
 
 .low-stock-filter input { width: auto; }
 
-@media (max-width: 1024px), (hover: none) and (pointer: coarse) {
+@media (max-width: 1024px), (any-pointer: coarse) {
   .app-shell { display: block; }
 
   .app-navigation {
