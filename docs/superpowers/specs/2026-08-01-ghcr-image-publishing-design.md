@@ -12,7 +12,7 @@ The published reference is `ghcr.io/${{ github.repository }}:latest`, which reso
 
 ## Permissions and caching
 
-The job has only `contents: read` and `packages: write` permissions. It uses the GitHub Actions cache backend for Docker Buildx layers. No repository secret is required.
+The job has only `contents: read` and `packages: write` permissions. It configures QEMU and Docker Buildx to publish `linux/amd64` and `linux/arm64` manifests, then uses the GitHub Actions cache backend for Docker Buildx layers. No repository secret is required.
 
 ## Failure behavior and verification
 

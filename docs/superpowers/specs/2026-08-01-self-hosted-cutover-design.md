@@ -12,7 +12,7 @@ The public origin remains `https://hamster.980204.xyz`, and the existing reverse
 
 ## Deployment package change
 
-The root `deploy/compose.yml` Web service will pull `ghcr.io/zxxx98/hamster:latest` rather than build the frontend from local source. It will use an explicit always-pull policy so rerunning bootstrap updates the Web image after a successful GitHub Actions publication. The Supabase services remain defined by the vendored private Compose file and are still bootstrapped from local migrations and Functions.
+The root `deploy/compose.yml` Web service will pull `ghcr.io/zxxx98/hamster:latest` rather than build the frontend from local source. The publishing workflow produces both `linux/amd64` and `linux/arm64` manifests, matching the target host. The service uses an explicit always-pull policy so rerunning bootstrap updates the Web image after a successful GitHub Actions publication. The Supabase services remain defined by the vendored private Compose file and are still bootstrapped from local migrations and Functions.
 
 ## Cutover sequence
 
