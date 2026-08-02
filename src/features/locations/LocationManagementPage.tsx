@@ -21,7 +21,7 @@ export function LocationManagementPage() {
   const [isSavingLocation, setIsSavingLocation] = useState(false)
   const [uploadingLocationId, setUploadingLocationId] = useState<string | null>(null)
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (showReadError = true) => {
     setIsLoading(true)
     try {
       const { supabase } = await import('../../lib/supabase')
@@ -57,7 +57,7 @@ export function LocationManagementPage() {
       setPhotoUrls(Object.fromEntries(signedEntries))
       setMessage('')
     } catch {
-      setMessage('暂时无法读取位置，请稍后重试。')
+      if (showReadError) setMessage('暂时无法读取位置，请稍后重试。')
     } finally {
       setIsLoading(false)
     }
@@ -67,18 +67,24 @@ export function LocationManagementPage() {
 
   async function createRoom(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    const name = String(new FormData(event.currentTarget).get('room') ?? '').trim()
+    const form = event.currentTarget
+    const name = String(new FormData(form).get('room') ?? '').trim()
     if (!name || !householdId) return
     setIsSavingRoom(true)
     setMessage('')
     try {
       const { supabase } = await import('../../lib/supabase')
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('rooms')
         .upsert({ household_id: householdId, name }, { onConflict: 'household_id,name' })
-      if (error) throw error
-      event.currentTarget.reset()
-      await load()
+        .select('id, name')
+        .single()
+      if (error || !data) throw error ?? new Error('房间保存失败')
+      setRooms((current) => current.some((room) => room.id === data.id)
+        ? current
+        : [...current, data].sort((left, right) => left.name.localeCompare(right.name, 'zh-CN')))
+      form.reset()
+      void load(false)
     } catch {
       setMessage('无法保存房间，请重试。')
     } finally {
@@ -88,7 +94,8 @@ export function LocationManagementPage() {
 
   async function createLocation(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    const form = new FormData(event.currentTarget)
+    const formElement = event.currentTarget
+    const form = new FormData(formElement)
     const roomId = String(form.get('roomId') ?? '')
     const name = String(form.get('location') ?? '').trim()
     if (!roomId || !name || !householdId) {
@@ -99,12 +106,16 @@ export function LocationManagementPage() {
     setMessage('')
     try {
       const { supabase } = await import('../../lib/supabase')
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('storage_locations')
         .insert({ household_id: householdId, room_id: roomId, name })
-      if (error) throw error
-      event.currentTarget.reset()
-      await load()
+        .select('id, name, room_id, photo_path, rooms(name)')
+        .single()
+      if (error || !data) throw error ?? new Error('存放点保存失败')
+      const location = data as unknown as Location
+      setLocations((current) => current.some((item) => item.id === location.id) ? current : [...current, location])
+      formElement.reset()
+      void load(false)
     } catch {
       setMessage('无法保存存放点；同一房间内请使用不同名称。')
     } finally {
@@ -136,7 +147,7 @@ export function LocationManagementPage() {
       <h2 id="rooms-heading">房间</h2>
       <form onSubmit={createRoom}>
         <label>新房间<input name="room" placeholder="厨房" required /></label>
-        <button type="submit" disabled={isSavingRoom || !householdId}>{isSavingRoom ? '正在保存…' : '添加房间'}</button>
+        <button className="location-create-action" type="submit" disabled={isSavingRoom || !householdId}>{isSavingRoom ? '正在保存…' : '添加房间'}</button>
       </form>
       {!isLoading && rooms.length > 0 ? <ul>{rooms.map((room) => <li key={room.id}>{room.name}</li>)}</ul> : null}
     </section>
@@ -145,7 +156,7 @@ export function LocationManagementPage() {
       <form onSubmit={createLocation}>
         <label>房间<select name="roomId" defaultValue="" required disabled={rooms.length === 0}><option value="" disabled>{rooms.length === 0 ? '请先添加房间' : '选择房间'}</option>{rooms.map((room) => <option key={room.id} value={room.id}>{room.name}</option>)}</select></label>
         <label>存放点<input name="location" placeholder="橱柜" required /></label>
-        <button type="submit" disabled={isSavingLocation || !householdId || rooms.length === 0}>{isSavingLocation ? '正在保存…' : '添加存放点'}</button>
+        <button className="location-create-action" type="submit" disabled={isSavingLocation || !householdId || rooms.length === 0}>{isSavingLocation ? '正在保存…' : '添加存放点'}</button>
       </form>
     </section>
     <section aria-labelledby="locations-heading">

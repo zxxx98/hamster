@@ -119,6 +119,26 @@ section button {
 .location-row { gap: 10px; }
 .location-row label { max-width: 320px; }
 
+button.location-create-action {
+  justify-self: start;
+  min-height: 44px;
+  border-radius: 0;
+  background: transparent;
+  color: #5E7966;
+  padding: 8px 0;
+}
+
+button.location-create-action:hover:not(:disabled) {
+  background: transparent;
+  color: #486451;
+  transform: none;
+}
+
+button.location-create-action:focus-visible {
+  outline: 2px solid #5E7966;
+  outline-offset: 3px;
+}
+
 .app-shell {
   display: grid;
   min-height: 100vh;
