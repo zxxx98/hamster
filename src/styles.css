@@ -118,6 +118,9 @@ section button {
 
 .location-row { gap: 10px; }
 .location-row label { max-width: 320px; }
+.settings-member-row { gap: 10px; }
+.settings-member-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.settings-member-editor { margin-top: 4px; }
 
 button.location-create-action {
   justify-self: start;

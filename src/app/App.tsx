@@ -7,7 +7,7 @@ import { getInitialSetupStatus } from '../features/auth/setupStatus'
 import { InventoryListPage } from '../features/inventory/InventoryListPage'
 import { InventoryEntryPage } from '../features/inventory/InventoryEntryPage'
 import { InventoryDetailPage } from '../features/inventory/InventoryDetailPage'
-import { MemberManagementPage } from '../features/auth/MemberManagementPage'
+import { SettingsPage } from '../features/auth/SettingsPage'
 import { LocationManagementPage } from '../features/locations/LocationManagementPage'
 import { useHouseholdRealtime } from '../features/sync/useHouseholdRealtime'
 import { AppNavigation } from './AppNavigation'
@@ -84,7 +84,8 @@ export function App() {
           <Route path="/inventory/new" element={<InventoryEntryPage />} />
           <Route path="/inventory/:id" element={<InventoryDetailPage />} />
           <Route path="/locations" element={<LocationManagementPage />} />
-          <Route path="/members" element={<MemberManagementPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/members" element={<Navigate to="/settings" replace />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes></div>
       </div> : <Routes>
